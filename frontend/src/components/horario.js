@@ -24,6 +24,7 @@ export default class horario extends Component {
             f(id);
             return false;
         });
+        
         scheduler.config.first_hour = 7;
         scheduler.config.last_hour = 14;
         scheduler.config.start_on_monday = true;
@@ -31,14 +32,16 @@ export default class horario extends Component {
         scheduler.init(this.schedulerContainer, new Date(),"week");      
         scheduler.clearAll();  
         scheduler.parse(this.props.events);
-        
+        if(this.props.deleteEvent){
+            scheduler.deleteEvent(this.props.deleteEvent);
+        }
     }
    
     render() {
-        
         if (this.props.updata){
             scheduler.parse(this.props.events)
         }
+        
         return (
           <div
           ref={ (input) => { this.schedulerContainer = input } }
@@ -58,10 +61,7 @@ export default class horario extends Component {
             console.log(date,"un click vacio",e)
         });
 
-        scheduler.attachEvent("onDblClick", function (id, e){
-            console.log(id,"doble click",e)
-            return false;
-        })
+        
 
         scheduler.attachEvent("onBeforeDrag", function (id, mode, e){
             console.log(id,"antes de arrastrar",e)

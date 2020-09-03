@@ -9,6 +9,7 @@ import Shake from 'react-reveal/Shake.js';
 export default class clases extends Component {
     state ={
         eventos: null,
+        deleteId:null,
         tex_title:"Agregar nueva clase",
         up:false,
         tempdate:null,
@@ -47,6 +48,8 @@ export default class clases extends Component {
        this.minewfunction();
     }
     encambio =(xs)=>{
+        this.validacionHoras(xs,"remove")
+        this.validacionHoras(this.state.temphour,"remove")
         this.setState({
             start_date: this.state.tempdate + " " + this.state.temphour,
             end_date: this.state.tempdate_  + " " + xs
@@ -59,6 +62,10 @@ export default class clases extends Component {
             text:this.state.text,
             start_date: this.state.start_date,
             end_date:this.state.end_date
+        }).then(res => {
+            console.log(res)
+        }).catch(err => {
+            console.log(err);
         })
         const res = this.minewfunction();
         this.setState({
@@ -73,14 +80,84 @@ export default class clases extends Component {
         })
         document.getElementById('form').reset();  
     }
+    validacionHoras = (str,type)=>{
+        if (type === "remove") {
+            if (str !== undefined & str !== null) {
+                let cv = str.split(/^[0]/)
+            console.log(cv);
+            }
+            
+        }else{
+            if(!(/^[0]/.test(str))){
+                if (/^[1]/.test(str)){
+                    return str
+                }else{
+                    return "0"+str
+                }            
+            }else{
+                return str
+            }
+        }
+    }
+    devolverAgregar = ()=>{
+        document.getElementById('add').innerHTML = "Añadir";
+        document.getElementById('title').value = "";
+
+        document.getElementById('start-date').value = " ";
+        document.getElementById('end-date').value  = "";
+
+        document.getElementById('start-hour').value = " ";
+        document.getElementById('end-hour').value = " ";
+
+        this.setState({
+            tex_title: "Agregar nueva clase"
+        });
+    }
     actualixar = async(c)=>{
         const edit = await axios.get('http://localhost:3000/class/'+c+'/');
-        console.log(edit.data.text)
         this.setState({
             tex_title:"Editar Clase"
         })
-        document.getElementById('title').value=edit.data.text;
-        return "bien"
+
+        const h = edit.data.start_date.split(" "),
+        g = edit.data.end_date.split(" ");
+
+        document.getElementById('title').value = edit.data.text;
+        document.getElementById('add').innerHTML = "Modificar";        
+
+        document.getElementById('start-date').valueAsDate  = new Date(h[0]);
+        document.getElementById('end-date').valueAsDate  = new Date(g[0]);
+
+        document.getElementById('start-hour').value = this.validacionHoras(h[1]);
+        document.getElementById('end-hour').value = this.validacionHoras(g[1]);
+
+        document.getElementById('delete').value = c;
+        return "Todo va bien"
+    }
+    ondelete = async (e)=>{
+        let t= e.target.value
+        await axios.delete('http://localhost:3000/class/'+t+'/').then(res =>{
+            console.log(res,"se borro")
+            this.setState({
+                deleteId: t
+            })
+            //const tag = this.minewfunction();
+        })
+    }
+    handleChangetext=e =>{
+
+    }
+    handleChangeStartDate=e =>{
+
+    }
+    handleChangeStartHour=e =>{
+
+    }
+    handleChangetext=e =>{
+
+    }
+    handleChangetext=e =>{
+        
     }
     render() {
         let templete = 
@@ -123,8 +200,10 @@ export default class clases extends Component {
                             <option>2</option>
                             </select>
                         </div>
-                        <div className="form-group">
-                            <button type="submit" className="btn btn-primary btn-block">Añadir</button>
+                        <div className={(this.state.tex_title === "Editar Clase") ? "form-group btn-group":"form-group"}>
+                            <button type="submit" className="btn btn-primary w-100" id="add">Añadir</button>
+                            {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-warning" onClick={this.devolverAgregar}>Cancelar</button>: ""}
+                            {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-danger" id="delete" onClick={this.ondelete}>Eliminar</button>: ""}
                         </div>
                     </form>
                 </div>
@@ -139,7 +218,7 @@ export default class clases extends Component {
                     </Shake>
                     <div className="col-md-7 mt-4">
                         <Flip top>
-                            <Horario updata={this.state.up} cos={this.actualixar} events={this.state.eventos}/>
+                            <Horario updata={this.state.up} cos={this.actualixar} events={this.state.eventos} deleteEvent={this.state.deleteId}/>
                         </Flip>
                     </div>
                 </div>

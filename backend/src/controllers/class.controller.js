@@ -14,7 +14,7 @@ classCtrl.addClas = async (req, res) => {
         await clase.save();
         res.json({msg:'Guardado'});
     }catch (err){
-        res.json({msg:'No se guardado'});
+        res.json({msg:'No se guardado'+err});
     }
 }
 classCtrl.deleteClass = async (req, res)=> {
