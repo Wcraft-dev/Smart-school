@@ -32,16 +32,18 @@ export default class horario extends Component {
         scheduler.init(this.schedulerContainer, new Date(),"week");      
         scheduler.clearAll();  
         scheduler.parse(this.props.events);
-        if(this.props.deleteEvent){
-            scheduler.deleteEvent(this.props.deleteEvent);
-        }
     }
    
-    render() {
-        if (this.props.updata){
+    
+    componentDidUpdate(prevProps){
+        if (this.props.events !== prevProps.events) {
             scheduler.parse(this.props.events)
         }
-        
+        if(this.props.deleteEvent !== prevProps.deleteEvent){
+            scheduler.deleteEvent(this.props.deleteEvent)
+        } 
+    }
+    render() {
         return (
           <div
           ref={ (input) => { this.schedulerContainer = input } }

@@ -7,19 +7,17 @@ import Shake from 'react-reveal/Shake.js';
 
 
 export default class clases extends Component {
-    state ={
+    state = {
         eventos: null,
-        deleteId:null,
+        deleteId:" ",
         tex_title:"Agregar nueva clase",
         up:false,
-        tempdate:null,
-        temphour:null,
-        tempdate_:null,
-        text: null,
-        author:"Jhair",
-        start_date:null,
-        end_date:null
-
+        tempdate:" ",
+        temphour:" ",
+        tempdate_:" ",
+        temphour_:" ",
+        text: "",
+        author:"Jhair"
     }
     minewfunction = async()=>{
         await axios.get('http://localhost:3000/class').then(res =>{
@@ -44,60 +42,44 @@ export default class clases extends Component {
             }
         })
     }
-    async componentDidMount(){
+    componentDidMount(){
        this.minewfunction();
     }
-    encambio =(xs)=>{
-        this.validacionHoras(xs,"remove")
-        this.validacionHoras(this.state.temphour,"remove")
-        this.setState({
-            start_date: this.state.tempdate + " " + this.state.temphour,
-            end_date: this.state.tempdate_  + " " + xs
-        })
+    validacionHoras = (str)=>{
+        if(!(/^[0]/.test(str))){
+            if (/^[1]/.test(str)){
+                return str
+            }else{
+                return "0"+str
+            }            
+        }else{
+            return str
+        } 
     }
     onSubmit= async (e)=>{
         e.preventDefault();
+        
         await axios.post("http://localhost:3000/class",{
-            author:this.state.author,
-            text:this.state.text,
-            start_date: this.state.start_date,
-            end_date:this.state.end_date
-        }).then(res => {
-            console.log(res)
+            author:     this.state.author,
+            text:       this.state.text,
+            start_date: this.state.tempdate + " " + this.state.temphour,
+            end_date:   this.state.tempdate_  + " " + this.state.temphour_
+        }).then(res =>{
+
         }).catch(err => {
-            console.log(err);
+            console.log("."+err+".",err.response.data)
         })
+        
+        
         const res = this.minewfunction();
         this.setState({
             eventos:res,
-            up:true,
             tempdate:"",
             temphour:"",
+            temphour_:"",
             tempdate_:"",
             text: "",
-            start_date:"",
-            end_date:""
         })
-        document.getElementById('form').reset();  
-    }
-    validacionHoras = (str,type)=>{
-        if (type === "remove") {
-            if (str !== undefined & str !== null) {
-                let cv = str.split(/^[0]/)
-            console.log(cv);
-            }
-            
-        }else{
-            if(!(/^[0]/.test(str))){
-                if (/^[1]/.test(str)){
-                    return str
-                }else{
-                    return "0"+str
-                }            
-            }else{
-                return str
-            }
-        }
     }
     devolverAgregar = ()=>{
         document.getElementById('add').innerHTML = "Añadir";
@@ -120,7 +102,7 @@ export default class clases extends Component {
         })
 
         const h = edit.data.start_date.split(" "),
-        g = edit.data.end_date.split(" ");
+            g = edit.data.end_date.split(" ");
 
         document.getElementById('title').value = edit.data.text;
         document.getElementById('add').innerHTML = "Modificar";        
@@ -135,29 +117,37 @@ export default class clases extends Component {
         return "Todo va bien"
     }
     ondelete = async (e)=>{
-        let t= e.target.value
-        await axios.delete('http://localhost:3000/class/'+t+'/').then(res =>{
-            console.log(res,"se borro")
-            this.setState({
-                deleteId: t
-            })
-            //const tag = this.minewfunction();
+        let t= document.getElementById('delete').value
+        await axios.delete('http://localhost:3000/class/'+t+'/')
+        this.setState({
+            deleteId: t,
+            tex_title: "Agregar nueva clase"
+        })         
+    }
+    handleChangetext = e =>{
+        this.setState({
+            text: e.target.value
         })
     }
-    handleChangetext=e =>{
-
+    handleChangeStartDate = e =>{    
+        this.setState({
+            tempdate : e.target.value
+        })
     }
-    handleChangeStartDate=e =>{
-
+    handleChangeStartHour = e =>{
+        this.setState({
+            temphour : e.target.value
+        })
     }
-    handleChangeStartHour=e =>{
-
+    handleChangeEndDate = e =>{
+        this.setState({
+            tempdate_: e.target.value
+        })
     }
-    handleChangetext=e =>{
-
-    }
-    handleChangetext=e =>{
-        
+    handleChangeendHour = e =>{
+        this.setState({
+            temphour_: e.target.value
+        })
     }
     render() {
         let templete = 
@@ -168,28 +158,28 @@ export default class clases extends Component {
                     <form onSubmit={this.onSubmit} id="form">
                         <div className="form-group">
                             <label htmlFor="title">Titulo</label>
-                            <input type="text"   onChange={e =>{this.setState({text:e.target.value})}} className="form-control" id="title" placeholder="Matematicas"/>
+                            <input type="text"   onChange={this.handleChangetext} value={this.state.text} className="form-control" id="title" placeholder="Matematicas"/>
                         </div>
 
                         <div className="row">
                             <div className="col">
                                 <label htmlFor="start-date">Fecha de inicio:</label>
-                                <input type="date"  onChange={e =>{this.setState({tempdate : e.target.value});this.encambio()}} id="start-date" className="form-control"/>
+                                <input type="date"  onChange={this.handleChangeStartDate} value={this.state.tempdate} id="start-date" className="form-control"/>
                             </div>
                             <div className="col">
                                 <label htmlFor="start-hour">Hora de comienzo:</label>
-                                <input type="time"  onChange={e =>{this.setState({temphour : e.target.value});this.encambio()}}  id="start-hour" className="form-control"/>
+                                <input type="time"  onChange={this.handleChangeStartHour} value={this.state.temphour} id="start-hour" className="form-control"/>
                             </div>
                         </div>
                         <hr/>
                         <div className="row">
                             <div className="col">
                                 <label htmlFor="end-date">Fecha de Terminacion:</label>
-                                <input type="date" onChange={e =>{this.setState({tempdate_: e.target.value});this.encambio()}}  id="end-date" className="form-control"/>
+                                <input type="date" onChange={this.handleChangeEndDate} value={this.state.tempdate_} id="end-date" className="form-control"/>
                             </div>
                             <div className="col">
                             <label htmlFor="end-hour">Hora de Finalizacion:</label>
-                            <input type="time" onChange={e =>{this.encambio(e.target.value)}} id="end-hour" className="form-control"/>
+                            <input type="time" onChange={this.handleChangeendHour} value={this.state.temphour_} id="end-hour" className="form-control"/>
                             </div>
                         
                         </div>
