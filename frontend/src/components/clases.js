@@ -11,7 +11,11 @@ export default class clases extends Component {
         eventos: null,
         deleteId:" ",
         tex_title:"Agregar nueva clase",
-        up:false,
+        submit: false,
+        errors: {
+            e: false,
+            val: null
+        },
         tempdate:" ",
         temphour:" ",
         tempdate_:" ",
@@ -56,29 +60,36 @@ export default class clases extends Component {
             return str
         } 
     }
+    
     onSubmit= async (e)=>{
         e.preventDefault();
-        
-        await axios.post("http://localhost:3000/class",{
+        this.setState({
+            submit: true
+        })
+        try{
+            await axios.post("http://localhost:3000/class",{
             author:     this.state.author,
             text:       this.state.text,
             start_date: this.state.tempdate + " " + this.state.temphour,
             end_date:   this.state.tempdate_  + " " + this.state.temphour_
-        }).then(res =>{
-
-        }).catch(err => {
-            console.log("."+err+".",err.response.data)
-        })
-        
-        
+            })
+        }catch (err) {
+            this.setState({
+                errors:{
+                    e: true,
+                    val: err.response.data.error
+                }
+            })
+        }
         const res = this.minewfunction();
         this.setState({
             eventos:res,
+            text: "",
             tempdate:"",
             temphour:"",
             temphour_:"",
             tempdate_:"",
-            text: "",
+            submit: false
         })
     }
     devolverAgregar = ()=>{
@@ -149,6 +160,55 @@ export default class clases extends Component {
             temphour_: e.target.value
         })
     }
+
+    btnSubmit = ()=>{
+        let styles,
+            existError = {},
+            loading = {},
+            time=1500;
+
+        if(this.state.errors.e){
+            existError = {
+                style: "danger",
+                text: "Error"
+            }
+        }else{
+            existError ={
+                style: "primary",
+                text: "Añadir"
+            }
+        } 
+
+        if(this.state.submit){
+            styles = "btn btn-info w-100" 
+            loading = {
+                spinner: <span className="spinner-border spinner-border-sm" role="status" key={1+1}/>,
+                text: "Loading..."
+            }
+            existError={
+                text:""
+            }
+        }else{
+            styles= "btn btn-" + existError.style + " w-100"
+        }
+        if(existError.text === "Error"){
+            setTimeout(function(){
+                document.getElementById('add').className = "btn btn-primary w-100"
+                document.getElementById('add').innerHTML = "Añadir"
+            },time)
+        }
+        return(
+            <button 
+                type="submit" 
+                className={styles}
+                id="add">
+                    {loading.spinner}
+                    {loading.text}
+                    {existError.text}
+            </button>
+           
+        )  
+    }
     render() {
         let templete = 
         <div className="col-md-5">
@@ -191,10 +251,11 @@ export default class clases extends Component {
                             </select>
                         </div>
                         <div className={(this.state.tex_title === "Editar Clase") ? "form-group btn-group":"form-group"}>
-                            <button type="submit" className="btn btn-primary w-100" id="add">Añadir</button>
+                            {this.btnSubmit()}
                             {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-warning" onClick={this.devolverAgregar}>Cancelar</button>: ""}
                             {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-danger" id="delete" onClick={this.ondelete}>Eliminar</button>: ""}
                         </div>
+                        {this.state.errors.e ? this.state.errors.val : ""}
                     </form>
                 </div>
             </div>

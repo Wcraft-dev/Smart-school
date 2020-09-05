@@ -14,7 +14,9 @@ classCtrl.addClas = async (req, res) => {
         await clase.save();
         res.json({msg:'Guardado'});
     }catch (err){
-        res.status(400).json({error:"mire esto esta mal des"});
+        let cx = err.message.split("Class_ validation failed:")
+        let vc = cx.filter(Boolean)
+        res.status(400).json({error:  vc});
     }
 }
 classCtrl.deleteClass = async (req, res)=> {
