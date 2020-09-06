@@ -4,24 +4,22 @@ import axios from 'axios'
 import Flip from 'react-reveal/Flip.js'; 
 import Shake from 'react-reveal/Shake.js'; 
 
-
+let stils="btn btn-primary w-100",
+    text="Añadir",
+    icon;
 
 export default class clases extends Component {
     state = {
         eventos: null,
         deleteId:" ",
         tex_title:"Agregar nueva clase",
-        submit: false,
-        errors: {
-            e: false,
-            val: null
-        },
+        errors: "",
         tempdate:" ",
         temphour:" ",
         tempdate_:" ",
         temphour_:" ",
         text: "",
-        author:"Jhair"
+        author:"Jhair",
     }
     minewfunction = async()=>{
         await axios.get('http://localhost:3000/class').then(res =>{
@@ -60,26 +58,60 @@ export default class clases extends Component {
             return str
         } 
     }
-    
+    validacionFecha =(str)=>{
+        if (/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.test(str)) {
+            return str
+        }else{
+            let c =str.split("-")
+            //console.log(c[2].length())
+            return str
+        }
+    }
+    onWait = ()=>{
+        stils="btn btn-info w-100";
+        icon= <span className="spinner-border spinner-border-sm" role="status"/>;
+        text="Loading...";
+    }
+    onBad = ()=>{
+        stils="btn btn-danger w-100";
+        icon= "X";
+        text="Error";
+    }
+    onGood = ()=>{
+        stils="btn btn-success w-100";
+        icon= "  chulo";
+        text="Tarea Agregada";
+    }
+    onReturn =()=>{
+        stils="btn btn-primary w-100"
+        text="Añadir"
+        icon="0"
+    }
     onSubmit= async (e)=>{
         e.preventDefault();
-        this.setState({
-            submit: true
-        })
+        this.onWait()
         try{
             await axios.post("http://localhost:3000/class",{
-            author:     this.state.author,
-            text:       this.state.text,
-            start_date: this.state.tempdate + " " + this.state.temphour,
-            end_date:   this.state.tempdate_  + " " + this.state.temphour_
+                author:     this.state.author,
+                text:       this.state.text,
+                start_date: this.state.tempdate + " " + this.state.temphour,
+                end_date:   this.state.tempdate_  + " " + this.state.temphour_
             })
+            this.onGood()
+            setTimeout(() => {
+                document.getElementById('add').className = "btn btn-primary w-100"
+                document.getElementById('add').innerHTML = "Añadir"
+            }, 1500);
+            
         }catch (err) {
             this.setState({
-                errors:{
-                    e: true,
-                    val: err.response.data.error
-                }
+                errors: err.response.data.error ? err.response.data.error : err
             })
+            this.onBad()
+            setTimeout(() => {
+                document.getElementById('add').className = "btn btn-primary w-100"
+                document.getElementById('add').innerHTML = "Añadir"
+            }, 1500);
         }
         const res = this.minewfunction();
         this.setState({
@@ -92,17 +124,15 @@ export default class clases extends Component {
             submit: false
         })
     }
+
     devolverAgregar = ()=>{
         document.getElementById('add').innerHTML = "Añadir";
-        document.getElementById('title').value = "";
-
-        document.getElementById('start-date').value = " ";
-        document.getElementById('end-date').value  = "";
-
-        document.getElementById('start-hour').value = " ";
-        document.getElementById('end-hour').value = " ";
-
         this.setState({
+            text: "",
+            tempdate: "",
+            temphour: "",
+            tempdate_: "",
+            temphour_: "",
             tex_title: "Agregar nueva clase"
         });
     }
@@ -115,16 +145,16 @@ export default class clases extends Component {
         const h = edit.data.start_date.split(" "),
             g = edit.data.end_date.split(" ");
 
-        document.getElementById('title').value = edit.data.text;
-        document.getElementById('add').innerHTML = "Modificar";        
-
-        document.getElementById('start-date').valueAsDate  = new Date(h[0]);
-        document.getElementById('end-date').valueAsDate  = new Date(g[0]);
-
-        document.getElementById('start-hour').value = this.validacionHoras(h[1]);
-        document.getElementById('end-hour').value = this.validacionHoras(g[1]);
-
+        this.setState({
+            text: edit.data.text,
+            tempdate: this.validacionFecha(h[0]),
+            temphour: this.validacionHoras(h[1]),
+            tempdate_: g[0],
+            temphour_: this.validacionHoras(g[1])
+        })
+        document.getElementById('add').innerHTML = "Modificar";
         document.getElementById('delete').value = c;
+
         return "Todo va bien"
     }
     ondelete = async (e)=>{
@@ -159,55 +189,6 @@ export default class clases extends Component {
         this.setState({
             temphour_: e.target.value
         })
-    }
-
-    btnSubmit = ()=>{
-        let styles,
-            existError = {},
-            loading = {},
-            time=1500;
-
-        if(this.state.errors.e){
-            existError = {
-                style: "danger",
-                text: "Error"
-            }
-        }else{
-            existError ={
-                style: "primary",
-                text: "Añadir"
-            }
-        } 
-
-        if(this.state.submit){
-            styles = "btn btn-info w-100" 
-            loading = {
-                spinner: <span className="spinner-border spinner-border-sm" role="status" key={1+1}/>,
-                text: "Loading..."
-            }
-            existError={
-                text:""
-            }
-        }else{
-            styles= "btn btn-" + existError.style + " w-100"
-        }
-        if(existError.text === "Error"){
-            setTimeout(function(){
-                document.getElementById('add').className = "btn btn-primary w-100"
-                document.getElementById('add').innerHTML = "Añadir"
-            },time)
-        }
-        return(
-            <button 
-                type="submit" 
-                className={styles}
-                id="add">
-                    {loading.spinner}
-                    {loading.text}
-                    {existError.text}
-            </button>
-           
-        )  
     }
     render() {
         let templete = 
@@ -251,11 +232,17 @@ export default class clases extends Component {
                             </select>
                         </div>
                         <div className={(this.state.tex_title === "Editar Clase") ? "form-group btn-group":"form-group"}>
-                            {this.btnSubmit()}
+                        <button 
+                            type="submit" 
+                            className={stils}
+                            id="add">
+                            {text}
+                            {icon}
+                        </button>
                             {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-warning" onClick={this.devolverAgregar}>Cancelar</button>: ""}
                             {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-danger" id="delete" onClick={this.ondelete}>Eliminar</button>: ""}
                         </div>
-                        {this.state.errors.e ? this.state.errors.val : ""}
+                        {this.state.errors}
                     </form>
                 </div>
             </div>
