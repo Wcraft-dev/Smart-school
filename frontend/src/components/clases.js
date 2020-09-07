@@ -6,20 +6,23 @@ import Shake from 'react-reveal/Shake.js';
 
 let stils="btn btn-primary w-100",
     text="Añadir",
-    icon;
+    icon
+    
 
 export default class clases extends Component {
     state = {
         eventos: null,
         deleteId:" ",
         tex_title:"Agregar nueva clase",
-        errors: "",
         tempdate:" ",
         temphour:" ",
         tempdate_:" ",
         temphour_:" ",
         text: "",
         author:"Jhair",
+        stilo: "btn btn-primary w-100",
+        btn_tx:"Añadir",
+        btn_icon:""
     }
     minewfunction = async()=>{
         await axios.get('http://localhost:3000/class').then(res =>{
@@ -62,30 +65,49 @@ export default class clases extends Component {
         if (/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.test(str)) {
             return str
         }else{
-            let c =str.split("-")
-            //console.log(c[2].length())
-            return str
+            let c = str.split("-")
+            if(!/^[0-9]{2}/.test(c[2])){
+                c[2] = "0"+c[2]
+                return c.join("-") 
+            }
         }
     }
     onWait = ()=>{
-        stils="btn btn-info w-100";
-        icon= <span className="spinner-border spinner-border-sm" role="status"/>;
-        text="Loading...";
+        this.setState({
+            stilo:"btn btn-info w-100",
+            btn_tx:"Cargando...",
+            btn_icon: <span className="spinner-border spinner-border-sm" role="status"></span>
+        })
     }
     onBad = ()=>{
-        stils="btn btn-danger w-100";
-        icon= "X";
-        text="Error";
+        this.setState({
+            stilo:"btn btn-danger w-100",
+            btn_tx:"Algo salio mal"
+        })
     }
     onGood = ()=>{
-        stils="btn btn-success w-100";
-        icon= "  chulo";
-        text="Tarea Agregada";
+        this.setState({
+            stilo:"btn btn-success w-100",
+            btn_tx: "Ok"
+        })
     }
     onReturn =()=>{
-        stils="btn btn-primary w-100"
-        text="Añadir"
-        icon="0"
+        this.setState({
+            stilo:"btn btn-secondary w-100",
+            btn_tx:"Añadir",
+            btn_icon:""
+        })
+    }
+    onTimer = ()=>{
+        setTimeout(() => {
+          this.onReturn()
+        }, 1500);
+    }
+    onModify = ()=>{
+        this.setState({
+            stilo:"btn btn-primary w-100",
+            btn_tx:"Modificar"
+        })
     }
     onSubmit= async (e)=>{
         e.preventDefault();
@@ -98,20 +120,11 @@ export default class clases extends Component {
                 end_date:   this.state.tempdate_  + " " + this.state.temphour_
             })
             this.onGood()
-            setTimeout(() => {
-                document.getElementById('add').className = "btn btn-primary w-100"
-                document.getElementById('add').innerHTML = "Añadir"
-            }, 1500);
-            
+            this.onTimer() 
         }catch (err) {
-            this.setState({
-                errors: err.response.data.error ? err.response.data.error : err
-            })
+            console.log(err.response.data.error[0])
             this.onBad()
-            setTimeout(() => {
-                document.getElementById('add').className = "btn btn-primary w-100"
-                document.getElementById('add').innerHTML = "Añadir"
-            }, 1500);
+            this.onTimer()
         }
         const res = this.minewfunction();
         this.setState({
@@ -126,7 +139,7 @@ export default class clases extends Component {
     }
 
     devolverAgregar = ()=>{
-        document.getElementById('add').innerHTML = "Añadir";
+        this.onReturn()
         this.setState({
             text: "",
             tempdate: "",
@@ -149,10 +162,10 @@ export default class clases extends Component {
             text: edit.data.text,
             tempdate: this.validacionFecha(h[0]),
             temphour: this.validacionHoras(h[1]),
-            tempdate_: g[0],
+            tempdate_: this.validacionFecha(g[0]),
             temphour_: this.validacionHoras(g[1])
         })
-        document.getElementById('add').innerHTML = "Modificar";
+        this.onModify()
         document.getElementById('delete').value = c;
 
         return "Todo va bien"
@@ -161,9 +174,15 @@ export default class clases extends Component {
         let t= document.getElementById('delete').value
         await axios.delete('http://localhost:3000/class/'+t+'/')
         this.setState({
-            deleteId: t,
+            text:"",
+            tempdate:"", 
+            temphour: "",
+            tempdate_: "",
+            temphour_: "",
+            deleteId:t,
             tex_title: "Agregar nueva clase"
-        })         
+        })
+        this.onReturn()     
     }
     handleChangetext = e =>{
         this.setState({
@@ -234,15 +253,14 @@ export default class clases extends Component {
                         <div className={(this.state.tex_title === "Editar Clase") ? "form-group btn-group":"form-group"}>
                         <button 
                             type="submit" 
-                            className={stils}
+                            className={this.state.stilo}
                             id="add">
-                            {text}
-                            {icon}
+                          {this.state.btn_tx} 
+                          {this.state.btn_icon} 
                         </button>
                             {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-warning" onClick={this.devolverAgregar}>Cancelar</button>: ""}
                             {(this.state.tex_title === "Editar Clase") ? <button type="reset" className="btn btn-danger" id="delete" onClick={this.ondelete}>Eliminar</button>: ""}
                         </div>
-                        {this.state.errors}
                     </form>
                 </div>
             </div>
