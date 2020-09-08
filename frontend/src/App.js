@@ -7,7 +7,9 @@ import Login from "./components/login.js";
 import Register from "./components/register.js";
 import AdminNavbar from "./components/Navbars/AdminNavbar.js";
 import Clases from "./components/clases.js";
-
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faTimes,faCheck } from "@fortawesome/free-solid-svg-icons";
+library.add(faTimes,faCheck);
 
 export default class App extends React.Component {
   state = {

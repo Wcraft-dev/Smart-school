@@ -46,14 +46,7 @@ nav ol {
       Layout
       ========================================================================== */
 body {
-  font-size: 100%;
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
   font-family: helvetica, sans-serif;
-  color: #333333;
-  line-height: 1.6;
-  font-weight: normal;
-  background-color: #3bf196;
 }
 .container {
   position: relative;

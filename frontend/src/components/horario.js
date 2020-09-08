@@ -19,7 +19,7 @@ export default class horario extends Component {
         ];
 
         scheduler.config.hour_date = '%g:%i %A';
-        let f = this.props.cos;
+        let f = this.props.onClicking;
         scheduler.attachEvent("onClick", function (id, e){
             f(id);
             return false;

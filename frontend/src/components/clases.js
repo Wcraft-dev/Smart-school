@@ -2,12 +2,8 @@ import React, { Component } from 'react'
 import Horario from './horario'
 import axios from 'axios'
 import Flip from 'react-reveal/Flip.js'; 
-import Shake from 'react-reveal/Shake.js'; 
-
-let stils="btn btn-primary w-100",
-    text="Añadir",
-    icon
-    
+import Shake from 'react-reveal/Shake.js';   
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default class clases extends Component {
     state = {
@@ -22,15 +18,18 @@ export default class clases extends Component {
         author:"Jhair",
         stilo: "btn btn-primary w-100",
         btn_tx:"Añadir",
-        btn_icon:""
+        btn_icon:"",
+        modify:false,
+        id__:" "
     }
     minewfunction = async()=>{
-        await axios.get('http://localhost:3000/class').then(res =>{
+        try{
+            const res = await axios.get('http://localhost:3000/class')
             this.setState({
                 eventos: res.data
             })
             return res.data
-        }).catch(err =>{
+        }catch(err){
             let loading_events = document.getElementById("loading_events");
             switch (err.message) {
                 case "Network Error":
@@ -45,7 +44,7 @@ export default class clases extends Component {
                 default:
                     break;
             }
-        })
+        }
     }
     componentDidMount(){
        this.minewfunction();
@@ -82,20 +81,24 @@ export default class clases extends Component {
     onBad = ()=>{
         this.setState({
             stilo:"btn btn-danger w-100",
-            btn_tx:"Algo salio mal"
+            btn_tx:"Algo salio mal",
+            btn_icon: <FontAwesomeIcon icon={"times"} />
         })
     }
     onGood = ()=>{
         this.setState({
             stilo:"btn btn-success w-100",
-            btn_tx: "Ok"
+            btn_tx: "Ok",
+            btn_icon: <FontAwesomeIcon icon={"check"} />
         })
     }
     onReturn =()=>{
         this.setState({
-            stilo:"btn btn-secondary w-100",
+            stilo:"btn btn-primary w-100",
             btn_tx:"Añadir",
-            btn_icon:""
+            btn_icon:"",
+            id__:" ",
+            modify:false
         })
     }
     onTimer = ()=>{
@@ -106,25 +109,43 @@ export default class clases extends Component {
     onModify = ()=>{
         this.setState({
             stilo:"btn btn-primary w-100",
-            btn_tx:"Modificar"
+            btn_tx:"Modificar",
+            modify: true
         })
     }
     onSubmit= async (e)=>{
         e.preventDefault();
         this.onWait()
-        try{
-            await axios.post("http://localhost:3000/class",{
-                author:     this.state.author,
-                text:       this.state.text,
-                start_date: this.state.tempdate + " " + this.state.temphour,
-                end_date:   this.state.tempdate_  + " " + this.state.temphour_
-            })
-            this.onGood()
-            this.onTimer() 
-        }catch (err) {
-            console.log(err.response.data.error[0])
-            this.onBad()
-            this.onTimer()
+        if(this.state.modify){
+            try{
+                await axios.put("http://localhost:3000/class/"+this.state.id__+"",{
+                    author:     this.state.author,
+                    text:       this.state.text,
+                    start_date: this.state.tempdate + " " + this.state.temphour,
+                    end_date:   this.state.tempdate_  + " " + this.state.temphour_
+                })
+                this.onGood()
+                this.onTimer() 
+            }catch(err){
+                console.log(err.response.data.error[0])
+                this.onBad()
+                this.onTimer()
+            }
+        }else{
+            try{
+                await axios.post("http://localhost:3000/class",{
+                    author:     this.state.author,
+                    text:       this.state.text,
+                    start_date: this.state.tempdate + " " + this.state.temphour,
+                    end_date:   this.state.tempdate_  + " " + this.state.temphour_
+                })
+                this.onGood()
+                this.onTimer() 
+            }catch (err) {
+                console.log(err.response.data.error[0])
+                this.onBad()
+                this.onTimer()
+            }
         }
         const res = this.minewfunction();
         this.setState({
@@ -134,7 +155,8 @@ export default class clases extends Component {
             temphour:"",
             temphour_:"",
             tempdate_:"",
-            submit: false
+            submit: false,
+            tex_title: "Agregar nueva clase"
         })
     }
 
@@ -149,7 +171,7 @@ export default class clases extends Component {
             tex_title: "Agregar nueva clase"
         });
     }
-    actualixar = async(c)=>{
+    updateCard = async(c)=>{
         const edit = await axios.get('http://localhost:3000/class/'+c+'/');
         this.setState({
             tex_title:"Editar Clase"
@@ -163,26 +185,32 @@ export default class clases extends Component {
             tempdate: this.validacionFecha(h[0]),
             temphour: this.validacionHoras(h[1]),
             tempdate_: this.validacionFecha(g[0]),
-            temphour_: this.validacionHoras(g[1])
+            temphour_: this.validacionHoras(g[1]),
+            id__: c
         })
         this.onModify()
-        document.getElementById('delete').value = c;
-
-        return "Todo va bien"
     }
     ondelete = async (e)=>{
-        let t= document.getElementById('delete').value
-        await axios.delete('http://localhost:3000/class/'+t+'/')
+        try{
+            await axios.delete('http://localhost:3000/class/'+this.state.id__+'/')
+            this.setState({
+                deleteId:this.state.id__
+            }) 
+            this.onGood()
+            this.onTimer()    
+        }catch(err){
+            console.log(err.response.data.error[0])
+            this.onBad()
+            this.onTimer()
+        }
         this.setState({
             text:"",
             tempdate:"", 
             temphour: "",
             tempdate_: "",
             temphour_: "",
-            deleteId:t,
             tex_title: "Agregar nueva clase"
         })
-        this.onReturn()     
     }
     handleChangetext = e =>{
         this.setState({
@@ -218,28 +246,59 @@ export default class clases extends Component {
                     <form onSubmit={this.onSubmit} id="form">
                         <div className="form-group">
                             <label htmlFor="title">Titulo</label>
-                            <input type="text"   onChange={this.handleChangetext} value={this.state.text} className="form-control" id="title" placeholder="Matematicas"/>
+                            <input 
+                                type="text"   
+                                onChange={this.handleChangetext} 
+                                value={this.state.text} 
+                                className="form-control" 
+                                id="title" 
+                                placeholder="Matematicas"
+                                required/>
                         </div>
 
                         <div className="row">
                             <div className="col">
                                 <label htmlFor="start-date">Fecha de inicio:</label>
-                                <input type="date"  onChange={this.handleChangeStartDate} value={this.state.tempdate} id="start-date" className="form-control"/>
+                                <input 
+                                    type="date"  
+                                    onChange={this.handleChangeStartDate} 
+                                    value={this.state.tempdate} 
+                                    id="start-date" 
+                                    className="form-control"
+                                    required/>
                             </div>
                             <div className="col">
                                 <label htmlFor="start-hour">Hora de comienzo:</label>
-                                <input type="time"  onChange={this.handleChangeStartHour} value={this.state.temphour} id="start-hour" className="form-control"/>
+                                <input 
+                                    type="time"
+                                    onChange={this.handleChangeStartHour} 
+                                    value={this.state.temphour} 
+                                    id="start-hour" 
+                                    className="form-control"
+                                    required/>
                             </div>
                         </div>
                         <hr/>
                         <div className="row">
                             <div className="col">
                                 <label htmlFor="end-date">Fecha de Terminacion:</label>
-                                <input type="date" onChange={this.handleChangeEndDate} value={this.state.tempdate_} id="end-date" className="form-control"/>
+                                <input 
+                                    type="date" 
+                                    onChange={this.handleChangeEndDate} 
+                                    value={this.state.tempdate_} 
+                                    id="end-date" 
+                                    className="form-control"
+                                    required/>
                             </div>
                             <div className="col">
                             <label htmlFor="end-hour">Hora de Finalizacion:</label>
-                            <input type="time" onChange={this.handleChangeendHour} value={this.state.temphour_} id="end-hour" className="form-control"/>
+                            <input 
+                                type="time" 
+                                onChange={this.handleChangeendHour} 
+                                value={this.state.temphour_} 
+                                id="end-hour" 
+                                className="form-control"
+                                required/>
                             </div>
                         
                         </div>
@@ -254,6 +313,7 @@ export default class clases extends Component {
                         <button 
                             type="submit" 
                             className={this.state.stilo}
+                            style={{transition: "all linear .5s"}}
                             id="add">
                           {this.state.btn_tx} 
                           {this.state.btn_icon} 
@@ -274,7 +334,7 @@ export default class clases extends Component {
                     </Shake>
                     <div className="col-md-7 mt-4">
                         <Flip top>
-                            <Horario updata={this.state.up} cos={this.actualixar} events={this.state.eventos} deleteEvent={this.state.deleteId}/>
+                            <Horario updata={this.state.up} onClicking={this.updateCard} events={this.state.eventos} deleteEvent={this.state.deleteId}/>
                         </Flip>
                     </div>
                 </div>
