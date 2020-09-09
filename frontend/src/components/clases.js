@@ -342,17 +342,20 @@ export default class clases extends Component {
             
         }else{
             return (
-                <div className="row mt-5">
-                    <Shake>
-                        {templete}
-                    </Shake>
-                    <div className="col-md-7 mt-4" id="loading_events">
-                    <div className="d-flex align-items-center p-3 mb-2 rounded-lg bg-warning text-dark ">
-                        <strong className="text-primary">Cargando...</strong>
-                        <div className="spinner-border text-primary ml-auto" role="status" aria-hidden="true"/>
-                    </div>
+                <div className="container">
+                    <div className="row mt-5">
+                        <Shake>
+                            {templete}
+                        </Shake>
+                        <div className="col-md-7 mt-4" id="loading_events">
+                        <div className="d-flex align-items-center p-3 mb-2 rounded-lg bg-warning text-dark ">
+                            <strong className="text-primary">Cargando...</strong>
+                            <div className="spinner-border text-primary ml-auto" role="status" aria-hidden="true"/>
+                        </div>
+                        </div>
                     </div>
                 </div>
+                
             );
         }
     }}

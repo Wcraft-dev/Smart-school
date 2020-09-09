@@ -2,50 +2,22 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
 export default class AdminNavbar extends Component {
-  state = {
-    active: false
-  }
-  menux = ()=>{
-    this.setState({active: !this.state.active})
-    this.props.pregunta(this.state.active)
-  }
   render() {
     return (
-      <div>
-        <header>
-          <Link className={this.state.active ? "target-burger toggled" : "target-burger"} to ="#" onClick={this.menux}>
-            <ul className="buns">
-              <li className="bun"></li>
-              <li className="bun"></li>
-            </ul>
-          </Link>
-        </header>
-        <nav className={this.state.active ? "main-nav toggled" : "main-nav"} role="navigation">
-          <ul>
-            <li>
-              <Link to="/">
-                <span>Inicio</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/user/login">
-                <span>Ingresar</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/user/register">
-                <span>Registrarse</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/user/class">
-                <span>Clases</span>
-              </Link>
-            </li>
-          </ul>
-        </nav>
-        
-      </div>
+      <nav className="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+        <Link className="nav-brand" to="/">NavBar</Link>
+        <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span className="navbar-toggler-icon"></span>
+        </button>
+        <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div className="navbar-nav ml-auto">
+            <Link className="nav-link active" to="/">Home</Link>
+            <Link className="nav-link disable" to="/user/login">Sign up</Link>
+            <Link className="nav-link disable" to="/user/register">Sign in</Link>
+            <Link className="nav-link" to="/user/class">Class</Link>
+          </div>
+        </div>
+    </nav>
     );
   }
 }
