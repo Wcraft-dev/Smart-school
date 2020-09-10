@@ -8,14 +8,14 @@ import Clases from "./components/clases.js"
 
 import './assets/css/App.css';
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faTimes,faCheck,faArrowLeft,faArrowRight} from "@fortawesome/free-solid-svg-icons";
+import { faTimes,faCheck,faArrowLeft,faArrowRight,faSchool,faBookReader,faGlobeAmericas,faHeart,faUser} from "@fortawesome/free-solid-svg-icons";
 
 import Admin from "./layouts/Admin.js";
 import Index from "./layouts/Index.js";
 
 
 
-library.add(faTimes,faCheck,faArrowLeft,faArrowRight);
+library.add(faTimes,faCheck,faArrowLeft,faArrowRight,faSchool,faBookReader,faGlobeAmericas,faHeart,faUser);
 export default class App extends React.Component {
   render() {
     return (
