@@ -1,5 +1,6 @@
 :root{
   --navbarTextColor:rgb(122, 122, 122);
+  --text:#002347;
 }
 
 ::selection {
@@ -12,4 +13,11 @@
 }
 .navbar {
   background-color: transparent !important;
+}
+body{
+  color:var(--text)
+}
+.inicio{
+  background-color: var(--text);
+  border-color: transparent;
 }
