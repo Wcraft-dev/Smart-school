@@ -24,7 +24,7 @@ export default class clases extends Component {
     }
     minewfunction = async()=>{
         try{
-            const res = await axios.get('http://localhost:3000/class')
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/class`)
             this.setState({
                 eventos: res.data
             })
@@ -118,7 +118,7 @@ export default class clases extends Component {
         this.onWait()
         if(this.state.modify){
             try{
-                await axios.put("http://localhost:3000/class/"+this.state.id__+"",{
+                await axios.put(`${process.env.REACT_APP_API_URL}/class/${this.state.id__}`,{
                     author:     this.state.author,
                     text:       this.state.text,
                     start_date: this.state.tempdate + " " + this.state.temphour,
@@ -133,7 +133,7 @@ export default class clases extends Component {
             }
         }else{
             try{
-                await axios.post("http://localhost:3000/class",{
+                await axios.post(`${process.env.REACT_APP_API_URL}/class`,{
                     author:     this.state.author,
                     text:       this.state.text,
                     start_date: this.state.tempdate + " " + this.state.temphour,
@@ -172,7 +172,7 @@ export default class clases extends Component {
         });
     }
     updateCard = async(c)=>{
-        const edit = await axios.get('http://localhost:3000/class/'+c+'/');
+        const edit = await axios.get(`${process.env.REACT_APP_API_URL}/class/${c}`);
         this.setState({
             tex_title:"Editar Clase"
         })
@@ -192,7 +192,7 @@ export default class clases extends Component {
     }
     ondelete = async (e)=>{
         try{
-            await axios.delete('http://localhost:3000/class/'+this.state.id__+'/')
+            await axios.delete(`${process.env.REACT_APP_API_URL}/class/${this.state.id__}`)
             this.setState({
                 deleteId:this.state.id__
             }) 

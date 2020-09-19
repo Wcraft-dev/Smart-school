@@ -1,6 +1,6 @@
 const userCtrl = {};
 
-const userModel = require('../models/User');
+const userModel = require('../models/auth.model.js');
 
 
 userCtrl.loginUser = async (req, res) => {
