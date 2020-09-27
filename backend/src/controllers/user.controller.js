@@ -1,18 +1,15 @@
-const userCtrl = {};
+import userModel from '../models/auth.model'
 
-const userModel = require('../models/auth.model.js');
-
-
-userCtrl.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
     res.json({msg: 'funcionando la base y autentuficacin de datos del usuario'});
 }
 
-userCtrl.getUsersData = async (req, res) => {
+export const getUsersData = async (req, res) => {
     const u = await userModel.find()
     res.json(u);
 } 
 
-userCtrl.newUser = async (req, res) => {
+export const newUser = async (req, res) => {
     const {username,name,lastName,email,password} = req.body
     const user = new userModel ({
         username,
@@ -29,7 +26,7 @@ userCtrl.newUser = async (req, res) => {
     }
 }
 
-userCtrl.deleteUser = async (req, res)=> {
+export const deleteUser = async (req, res)=> {
     
     const datau = await userModel.findById(req.params.id);
     if (req.body["password"] == datau["password"]) {
@@ -39,5 +36,3 @@ userCtrl.deleteUser = async (req, res)=> {
          res.json({msg: 'password incorrect'})
     }
 }
-
-module.exports = userCtrl;

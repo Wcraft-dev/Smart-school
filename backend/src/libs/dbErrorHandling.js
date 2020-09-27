@@ -1,9 +1,4 @@
 "use strict"
-
-/*
-    Get Unique error field name
-*/
-
 const uniqueMessage = error =>{
     let output;
     try{
@@ -19,11 +14,7 @@ const uniqueMessage = error =>{
     }
     return output;
 }
-
-/*
-    Get the error message from error object
-*/
-exports.errorHandler = error =>{
+export const errorHandler = error =>{
     let message = "";
     if (error.code){
         switch (error.code){

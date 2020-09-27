@@ -1,6 +1,6 @@
-const {Router} = require('express');
+import {Router} from 'express'
+import  { getUsersData, deleteUser, loginUser , newUser } from '../controllers/user.controller'
 const router = Router();
-const { getUsersData, deleteUser, loginUser , newUser } = require('../controllers/user.controller')
 
 router.route('/')
     .get((req, res) => res.send('Login form'))
@@ -16,4 +16,4 @@ router.route('/admin')
 router.route('/:id')
     .delete(deleteUser)
 
-module.exports = router;
+export default router;

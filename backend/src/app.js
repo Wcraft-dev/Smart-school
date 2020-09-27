@@ -1,38 +1,31 @@
-const express = require('express');
-const morgan = require('morgan');
-const bodyParser = require('body-parser');
-const connectDB = require('./config/db');
-const cors = require('cors');
-
+import express from "express";
+import cors from "cors";
+import morgan from "morgan";
+import bodyParser from "body-parser";
+import connectDB from "./config/db";
+import routes from './routes/'
+import "./config/config";
+import {createRoles} from './libs/initialSetup'
 const app = express();
 
 //Connnect to database
-connectDB()
-
-//Configs
-require('dotenv').config({ path: './src/config/config.env' })
-app.set('port', process.env.PORT || 5000);
-app.use(bodyParser.json())
+connectDB();
+createRoles()
+app.set("port", process.env.PORT || 6000);
+app.use(bodyParser.json());
 
 //middleware
-if (process.env.NODE_ENV === 'development') {
-    app.use(cors({
-        origin: process.env.CLIENT_URL
-    }))
-    app.use(morgan('dev'))
-}
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+  })
+);
+
+app.use(morgan("dev"));
 app.use(express.json());
 
-
-//load Routes
-const authRoute = require('./routes/authRoute.js')
-
 //routes
-app.use('/api/', authRoute)
-
-app.use('/user',require('./routes/users'));
-app.use('/class',require('./routes/class_'));
+app.use("/api/", routes);
 
 
-
-module.exports = app;
+export default app;

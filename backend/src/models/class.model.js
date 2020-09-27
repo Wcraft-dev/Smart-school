@@ -1,4 +1,5 @@
-const { Schema, model } = require('mongoose');
+import { Schema, model } from 'mongoose'
+
 const class_Shema = new Schema({
     author: {
         type:String,
@@ -22,4 +23,4 @@ const class_Shema = new Schema({
     timestamps: true
 });
 
-module.exports = model('Class_', class_Shema);
+export default model('Class_', class_Shema);

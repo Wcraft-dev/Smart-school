@@ -1,20 +1,20 @@
-const User = require("../models/auth.model.js");
-const experssJwt = require("express-jwt");
-const _ = require("lodash");
-const { OAuth2Client } = require("google-auth-library");
-const fetch = require("node-fetch");
-const { validationResult } = require("express-validator");
-const jwt = require("jsonwebtoken");
-//Custom error handler to get uselful error from database errors
-const { errorHandler } = require("../helpers/dbErrorHandling");
-
-const sgMail = require("@sendgrid/mail");
+import User from "../models/auth.model";
+import Role from "../models/role.model";
+import { OAuth2Client } from "google-auth-library";
+import { validationResult } from "express-validator";
+import { errorHandler } from "../libs/dbErrorHandling";
+import _ from "lodash";
+import jwt from "jsonwebtoken";
+import sgMail from "@sendgrid/mail";
+import "../config/config";
+import fetch from "node-fetch";
+import experssJwt from "express-jwt";
 
 sgMail.setApiKey(process.env.MAIL_KEY);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT);
 
-exports.registerControler = async (req, res) => {
+export const singUpControler = async (req, res) => {
   const { name, email, username, password } = req.body;
-  console.log(req.body ? "recibido" : "no se recibio nada o esta vacio");
   const errors = validationResult(req);
   //validation to req.body
   if (!errors.isEmpty()) {
@@ -79,36 +79,51 @@ exports.registerControler = async (req, res) => {
     }
   }
 };
-
 //Activation and save to database
-exports.activationController = async (req, res) => {
+export const activationController = async (req, res) => {
   const { token } = req.body;
   if (token) {
     //verify the token is valid or not or expired
     try {
-      await jwt.verify(token, process.env.JWT_SECRET_ACTIVATION);
-
-      const { name, username, email, password } = jwt.decode(token);
-
+      jwt.verify(token, process.env.JWT_SECRET_ACTIVATION);
+      const { name, username, email, password, roles } = jwt.decode(token);
       try {
-        const user = new User({
+        const newUser = new User({
           name,
           lastName: "apelli",
           username,
           email,
-          password,
+          password: await User.encryptPassword(password),
         });
 
-        await user.save();
+        if (roles) {
+          try {
+            const foundRoles = await Role.find({ name: { $in: roles } });
+            newUser.roles = foundRoles.map((role) => role._id);
+          } catch (error) {
+            res.status(400).json({
+              error: [error],
+            });
+          }
+        } else {
+          try {
+            const re = await Role.findOne({ name: "student" });
+            newUser.roles = [re._id];
+          } catch (error) {
+            res.status(400).json({ error: [error] });
+          }
+        }
+
+        await newUser.save();
 
         return res.json({
           success: true,
           message: "Signup success",
-          user: user,
+          user: newUser,
         });
       } catch (error) {
         return res.status(401).json({
-          error: errorHandler(error),
+          error: errorHandler(error) + error,
         });
       }
     } catch (error) {
@@ -122,7 +137,7 @@ exports.activationController = async (req, res) => {
     });
   }
 };
-exports.loginControler = async (req, res) => {
+export const singInControler = async (req, res) => {
   const { email, password } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -134,46 +149,46 @@ exports.loginControler = async (req, res) => {
       error: getError,
     });
   } else {
-    // check if user exist
-    User.findOne({
-      email,
-    }).exec((err, user) => {
-      if (err || !user) {
-        return res.status(400).json({
-          error: ["User with that email does not exist. Please signup"],
-        });
+    try {
+      const userFound = await User.findOne({ email: email }).populate("roles");
+      if (!userFound) throw "User not found";
+      try {
+        const matchPassword = await User.authenticate(
+          password,
+          userFound.password
+        );
+        if (!matchPassword) throw "invalid password";
+      } catch (error) {
+        return res.status(400).json({ token: null, error: error });
       }
-      // authenticate
-      if (!user.authenticate(password)) {
-        return res.status(400).json({
-          error: ["Email and password do not match"],
-        });
-      }
-      // generate a token and send to client
       const token = jwt.sign(
         {
-          _id: user._id,
+          id: userFound._id,
         },
         process.env.JWT_SECRET,
         {
           expiresIn: "7d",
         }
       );
-      const { _id, name, email, role } = user;
 
+      res.json({ token, userFound });
+    } catch (error) {
+      return res.status(400).json({ token: null, error: error });
+    }
+
+    /* 
+icluir los datos del usuario para el singin
       return res.json({
         token,
         user: {
           _id,
           name,
           email,
-          role,
         },
-      });
-    });
+      }); */
   }
 };
-exports.forgetPassword = async (req, res) => {
+export const forgetPassword = async (req, res) => {
   const { email } = req.body;
   const errors = validationResult(req);
 
@@ -231,7 +246,7 @@ exports.forgetPassword = async (req, res) => {
     }
   }
 };
-exports.resetControler = (req, res) => {
+export const resetControler = (req, res) => {
   const { newPassword, resetPassword } = req.body;
   const errors = validationResult(req);
 
@@ -271,7 +286,7 @@ exports.resetControler = (req, res) => {
     }
   }
 };
-exports.getUserTesting = async (req, res) => {
+export const getUserTesting = async (req, res) => {
   try {
     const allUser = await User.find();
     return res.json({
@@ -283,9 +298,7 @@ exports.getUserTesting = async (req, res) => {
     });
   }
 };
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT);
-exports.googleController = async (req, res) => {
+export const googleController = async (req, res) => {
   const { idToken } = req.body;
   try {
     const respueta = await client.verifyIdToken({
@@ -294,7 +307,7 @@ exports.googleController = async (req, res) => {
     });
     const { email_verified, name, email } = respueta.payload;
     if (email_verified) {
-      User.findOne({ email }).exec( async (error, user) => {
+      User.findOne({ email }).exec(async (error, user) => {
         if (user) {
           const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
             expiresIn: "7d",
@@ -306,34 +319,48 @@ exports.googleController = async (req, res) => {
           });
         } else {
           let password = email + "9190E6A657EEF0F1587F6815EA3C0F0A3CB0403F";
-          user = new User({ name, email, username:name+'username', password });
+          user = new User({
+            name,
+            email,
+            username: name + "username",
+            password,
+          });
 
           try {
-            const data = await user.save()
+            const data = await user.save();
             const token = jwt.sign({ _id: data._id }, process.env.JWT_SECRET, {
               expiresIn: "7d",
             });
-  
-            const {_id,email, name , role } = data 
+
+            const { _id, email, name, role } = data;
             return res.json({
               token,
-              user:{_id,email,name ,role}
-            })
+              user: { _id, email, name, role },
+            });
           } catch (error) {
             return res.status(400).json({
-              error: errorHandler(error)
+              error: errorHandler(error),
             });
-          }  
+          }
         }
       });
-    }else{
+    } else {
       return res.status(400).json({
-        error:['Google login failed, try again 1 ']
-      })
+        error: ["Google login failed, try again 1 "],
+      });
     }
   } catch (error) {
     return res.status(400).json({
-      error:[`Google login failed, try again 2 ${error}`]
-    })
+      error: [`Google login failed, try again 2 ${error}`],
+    });
+  }
+};
+export const deleteUserController = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await User.findByIdAndDelete(id);
+    res.send("user delete success");
+  } catch (err) {
+    res.send("OPS!! worng ");
   }
 };

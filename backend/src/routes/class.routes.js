@@ -1,6 +1,6 @@
-const {Router} = require('express');
+import {Router} from 'express'
+import {addClas, deleteClass, getClas, getClases,updateClas}  from '../controllers/class.controller'
 const router = Router();
-const { addClas, deleteClass, getClases , getClas, updateClas } = require('../controllers/class.controller')
 
 router.route('/')
     .get(getClases)
@@ -11,4 +11,4 @@ router.route('/:id')
     .put(updateClas)
     .delete(deleteClass)
 
-module.exports = router;
+export default router;

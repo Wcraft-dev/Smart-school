@@ -1,8 +1,6 @@
-const classCtrl = {};
+import classModel from '../models/class.model'
 
-const classModel = require('../models/Class_');
-
-classCtrl.addClas = async (req, res) => {
+export const addClas = async (req, res) => {
     const {author, text, start_date, end_date} = req.body
     try {
         const clase = new classModel ({
@@ -19,7 +17,7 @@ classCtrl.addClas = async (req, res) => {
         res.status(400).json({error:  vc});
     }
 }
-classCtrl.deleteClass = async (req, res)=> {
+export const deleteClass = async (req, res)=> {
     await classModel.findByIdAndDelete(req.params.id)
     res.json({msg: 'eliminamos una clase por la id recivida'})
 };
@@ -36,18 +34,18 @@ function vamos(arr) {
     })
     return result;
 }
-classCtrl.getClases = async (req, res)=> {
+export const getClases = async (req, res)=> {
     const b = await classModel.find();
     const reurns = vamos(b)
     res.json(reurns)
 };
 
-classCtrl.getClas = async (req, res)=> {
+export const getClas = async (req, res)=> {
     const cl = await classModel.findById(req.params.id)
     res.json(cl);
 }
 
-classCtrl.updateClas = async (req, res)=> {
+export const updateClas = async (req, res)=> {
     const {  text , start_date , end_date }= req.body;
     if((text ,start_date ,end_date) != null)
     {
@@ -72,6 +70,3 @@ classCtrl.updateClas = async (req, res)=> {
    
     
 }
-
-
-module.exports = classCtrl;
