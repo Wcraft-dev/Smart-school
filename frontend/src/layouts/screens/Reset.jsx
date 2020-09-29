@@ -24,25 +24,29 @@ export default class Reset extends Component {
   };
   handlerSubmit = async (e) => {
     e.preventDefault();
-    if (this.state.password1 === this.state.password2 && this.state.password2 && this.state.password1) {
-      try {
-        console.log(this.state.password1,this.state.token)
-        const res = await axios.put(
-          `${process.env.REACT_APP_API_URL}/resetPassword`,
-          {
-            newPassword: this.state.password1,
-            resetPassword: this.state.token,
-          }
-        );
-        this.setState({ password1: "", password2: "" });
-        toast.success(res.data.message);
-        this.setState({success:true})
-        this.props.history.push("/login");
-      } catch (error) {
-        toast.error(`Ops!!, ${error.response.data.error}`);
+    if(this.state.password1 && this.state.password2){
+      if (this.state.password1 === this.state.password2) {
+        try {
+          console.log(this.state.password1,this.state.token)
+          const res = await axios.put(
+            `${process.env.REACT_APP_API_URL}/auth/resetPassword`,
+            {
+              newPassword: this.state.password1,
+              resetPassword: this.state.token,
+            }
+          );
+          this.setState({ password1: "", password2: "" });
+          toast.success(res.data.message);
+          this.setState({success:true})
+          this.props.history.push("/user/singin");
+        } catch (error) {
+          toast.error(`Ops!!, ${error.response.data.error}`);
+        }
+      } else {
+        toast.error(`Passwords dont'n matches`);
       }
-    } else {
-      toast.error(`Passwords dont'n matches`);
+    }else{
+      toast.error(`Please fill all inputs`)
     }
   };
 

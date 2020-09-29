@@ -18,7 +18,7 @@ export default class Login extends Component {
     e.preventDefault();
     if (this.state.email && this.state.password) {
       try {
-        const res = await axios.post(`${process.env.REACT_APP_API_URL}/login`, {
+        const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/singin`, {
           email: this.state.email,
           password: this.state.password,
         });
@@ -48,7 +48,7 @@ export default class Login extends Component {
   sendGoogle = async (tokenId) => {
     try {
       const res = await axios.post(
-        `${process.env.REACT_APP_API_URL}/googlelogin`,
+        `${process.env.REACT_APP_API_URL}/auth/google`,
         {
           idToken: tokenId,
         }
@@ -62,11 +62,7 @@ export default class Login extends Component {
         }
       });
     } catch (error) {
-      if (error.response) {
-        toast.error(`login with google ${error.response.data.error}`);
-      } else {
-        console.log(error);
-      }
+      toast.error(`failed sing in with google try again please`);
     }
   };
 

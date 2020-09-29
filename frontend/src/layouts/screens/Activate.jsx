@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { isAuth } from "../../helpers/auth";
+import { isAuth, authenticate } from "../../helpers/auth";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
@@ -25,13 +25,21 @@ export default class Activate extends Component {
     e.preventDefault();
     try {
       const res = await axios.post(
-        `${process.env.REACT_APP_API_URL}/activation`,
+        `${process.env.REACT_APP_API_URL}/auth/activation`,
         {
           token: this.state.token,
         }
       );
       this.setState({ show: false });
       toast.success(res.data.message);
+       authenticate(res, () => {
+        toast.success(`Bienvenido ${res.data.user.name}`);
+        if (isAuth().role === "student") {
+          this.props.history.push("/student");
+        } else {
+          this.props.history.push("/docente");
+        }
+      });
       //this.props.history.push("/login");
     } catch (e) {
       toast.error(e.response.data.error);

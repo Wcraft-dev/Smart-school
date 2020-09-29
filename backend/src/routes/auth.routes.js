@@ -1,33 +1,17 @@
 import { Router } from "express";
-import {
-  validRegiester,
-  validLogin,
-  forgotPasswordValidator,
-  resetPasswordValidator,
-  accessByToken,
-} from "../middlewares/auth.validator";
-import {
-  singUpControler,
-  singInControler,
-  activationController,
-  forgetPassword,
-  resetControler,
-  getUserTesting,
-  googleController,
-  deleteUserController,
-} from "../controllers/auth.controler";
+import * as validator from "../middlewares/auth.validator";
+import * as controller from "../controllers/auth.controler";
 
 const router = Router();
 
-router.post("/singup", validRegiester, singUpControler);
-router.post("/singin", validLogin, singInControler);
-router.post("/forget", forgotPasswordValidator, forgetPassword);
-router.put("/resetPassword", resetPasswordValidator, resetControler);
+router.post("/google", controller.google);
+router.post("/singup", validator.singUp, controller.singUp);
+router.post("/singin", validator.singIn, controller.singIn);
+router.post("/forget", validator.forgotPassword, controller.forgetPassword);
+router.put("/resetPassword", validator.resetPassword, controller.resetPassword);
+router.post("/activation", controller.activation);
 
-router.post("/googlelogin", googleController);
-
-router.get("/users", accessByToken, getUserTesting);
-router.delete("/users/:id", deleteUserController);
-router.post("/activation", activationController);
+router.get("/users",  controller.getUserTesting);
+router.delete("/users/:id",  controller.deleteUser);
 
 export default router;

@@ -13,8 +13,8 @@ import experssJwt from "express-jwt";
 sgMail.setApiKey(process.env.MAIL_KEY);
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT);
 
-export const singUpControler = async (req, res) => {
-  const { name, email, username, password } = req.body;
+export const singUp = async (req, res) => {
+  const { name, email, password } = req.body;
   const errors = validationResult(req);
   //validation to req.body
   if (!errors.isEmpty()) {
@@ -46,7 +46,6 @@ export const singUpControler = async (req, res) => {
       {
         name,
         email,
-        username,
         password,
       },
       process.env.JWT_SECRET_ACTIVATION,
@@ -74,57 +73,79 @@ export const singUpControler = async (req, res) => {
       });
     } catch (errox) {
       return res.status(400).json({
-        error: errorHandler(errox),
+        error: errox,
       });
     }
   }
 };
 //Activation and save to database
-export const activationController = async (req, res) => {
+export const activation = async (req, res) => {
   const { token } = req.body;
   if (token) {
-    //verify the token is valid or not or expired
     try {
       jwt.verify(token, process.env.JWT_SECRET_ACTIVATION);
-      const { name, username, email, password, roles } = jwt.decode(token);
+      const { name, email, password, roles } = jwt.decode(token);
       try {
-        const newUser = new User({
-          name,
-          lastName: "apelli",
-          username,
-          email,
-          password: await User.encryptPassword(password),
-        });
-
-        if (roles) {
-          try {
-            const foundRoles = await Role.find({ name: { $in: roles } });
-            newUser.roles = foundRoles.map((role) => role._id);
-          } catch (error) {
-            res.status(400).json({
-              error: [error],
-            });
-          }
+        const exist = await User.findOne({ email });
+        if (exist) {
+          return res.status(400).json({ error: ["already activated account"] });
         } else {
-          try {
-            const re = await Role.findOne({ name: "student" });
-            newUser.roles = [re._id];
-          } catch (error) {
-            res.status(400).json({ error: [error] });
+          const newUser = new User({
+            name,
+            lastName: "apelli",
+            accountGoogle: false,
+            email,
+            password: await User.encryptPassword(password),
+          });
+
+          if (roles) {
+            try {
+              const foundRoles = await Role.find({ name: { $in: roles } });
+              newUser.roles = foundRoles.map((role) => role._id);
+            } catch (error) {
+              res.status(400).json({
+                error: [error],
+              });
+            }
+          } else {
+            try {
+              const re = await Role.findOne({ name: "student" });
+              newUser.roles = [re._id];
+            } catch (error) {
+              return res
+                .status(400)
+                .json({
+                  error: ["we coudn't validated your account try again"],
+                });
+            }
           }
+
+          await newUser.save();
+
+          const token = jwt.sign(
+            {
+              id: newUser._id,
+            },
+            process.env.JWT_SECRET,
+            {
+              expiresIn: "7d",
+            }
+          );
+          return res.json({
+            success: true,
+            message: "Signup success",
+            token: token,
+            user: {
+              name,
+              email,
+              picture: null,
+            },
+          });
         }
-
-        await newUser.save();
-
-        return res.json({
-          success: true,
-          message: "Signup success",
-          user: newUser,
-        });
       } catch (error) {
-        return res.status(401).json({
-          error: errorHandler(error) + error,
-        });
+        return res
+          .status(400)
+          .json({ error: ["we coudn't validated your account try again"] });
       }
     } catch (error) {
       return res.status(401).json({
@@ -137,7 +158,7 @@ export const activationController = async (req, res) => {
     });
   }
 };
-export const singInControler = async (req, res) => {
+export const singIn = async (req, res) => {
   const { email, password } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -150,7 +171,7 @@ export const singInControler = async (req, res) => {
     });
   } else {
     try {
-      const userFound = await User.findOne({ email: email }).populate("roles");
+      const userFound = await User.findOne({ email }).populate("roles");
       if (!userFound) throw "User not found";
       try {
         const matchPassword = await User.authenticate(
@@ -159,8 +180,9 @@ export const singInControler = async (req, res) => {
         );
         if (!matchPassword) throw "invalid password";
       } catch (error) {
-        return res.status(400).json({ token: null, error: error });
+        return res.status(400).json({ token: null, error: ["we coudn't validated your account"] });
       }
+
       const token = jwt.sign(
         {
           id: userFound._id,
@@ -170,22 +192,18 @@ export const singInControler = async (req, res) => {
           expiresIn: "7d",
         }
       );
-
-      res.json({ token, userFound });
-    } catch (error) {
-      return res.status(400).json({ token: null, error: error });
-    }
-
-    /* 
-icluir los datos del usuario para el singin
+      const { name } = userFound;
       return res.json({
         token,
         user: {
-          _id,
           name,
           email,
+          picture: null,
         },
-      }); */
+      });
+    } catch (error) {
+      return res.status(400).json({ token: null, error: ["we coudn't validated your account"] });
+    }
   }
 };
 export const forgetPassword = async (req, res) => {
@@ -203,50 +221,52 @@ export const forgetPassword = async (req, res) => {
   } else {
     try {
       const user = await User.findOne({ email });
-      const token = jwt.sign(
-        {
-          _id: user._id,
-        },
-        process.env.JWT_RESET_PASSWORD,
-        {
-          expiresIn: "10m",
-        }
-      );
+      if (!user.accountGoogle) {
+        const token = jwt.sign(
+          {
+            _id: user._id,
+          },
+          process.env.JWT_RESET_PASSWORD,
+          {
+            expiresIn: "10m",
+          }
+        );
 
-      const emailData = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: "Password reset",
-        html: `
+        const emailData = {
+          from: process.env.EMAIL_FROM,
+          to: email,
+          subject: "Password reset",
+          html: `
         <h1>Please click to link to reset your password</h1>
-        <p>${process.env.CLIENT_URL}/user/password/reset/${token}</p>
+        <p>${process.env.CLIENT_URL}/user/passwordReset/${token}</p>
         `,
-      };
-      try {
-        await user.updateOne({
-          resetPassword: token,
-        });
+        };
         try {
-          const sent = await sgMail.send(emailData);
-          return res.json({
-            message: `Email has been sent to ${email}`,
+          await user.updateOne({
+            resetPassword: token,
           });
-        } catch (e) {
-          return res.json({ message: e.message });
+          try {
+            const sent = await sgMail.send(emailData);
+            return res.json({
+              message: `Email has been sent to ${email}`,
+            });
+          } catch (e) {
+            return res.json({ error: ["we coudn't send email, try again please"] });
+          }
+        } catch (err) {
+          return res.status(400).json({
+            error: ["we coudn't validated your information"]
+          });
         }
-      } catch (err) {
-        return res.status(400).json({
-          error: errorHandler(err),
-        });
+      } else {
+        return res.status(401).json({error:["it's account created with google try sing in google"]});
       }
     } catch (err) {
-      return res
-        .status(400)
-        .json({ error: ["user with email does not exist", err] });
+      return res.status(400).json({ error: ["email does not exist"] });
     }
   }
 };
-export const resetControler = (req, res) => {
+export const resetPassword = async (req, res) => {
   const { newPassword, resetPassword } = req.body;
   const errors = validationResult(req);
 
@@ -264,25 +284,26 @@ export const resetControler = (req, res) => {
         jwt.verify(resetPassword, process.env.JWT_RESET_PASSWORD);
       } catch (error) {
         return res.status(400).json({
-          error: ["Expired Link, Try again"],
+          error: ["Expired Link"],
         });
       }
-      User.findOne({ resetPassword }, async (err, user) => {
-        if (err) {
-          return res
-            .status(400)
-            .json({ error: ["Something was wrong, try later"] });
-        }
-        user = _.extend(user, { password: newPassword, resetPassword: "" });
-        try {
-          await user.save();
-          res.json({
-            message: "Great! Now you can login with password ",
-          });
-        } catch (err) {
-          return res.status(400).json({ error: ["Error reseting password"] });
-        }
-      });
+
+      try {
+        await User.findOneAndUpdate(
+          { resetPassword },
+          {
+            password: await User.encryptPassword(newPassword),
+            resetPassword: "",
+          }
+        );
+        res.json({
+          message: "Great! Now you can login with password",
+        });
+      } catch (error) {
+        return res
+          .status(400)
+          .json({ error: ["Something was wrong, try again please"] });
+      }
     }
   }
 };
@@ -298,64 +319,94 @@ export const getUserTesting = async (req, res) => {
     });
   }
 };
-export const googleController = async (req, res) => {
+export const google = async (req, res) => {
   const { idToken } = req.body;
   try {
     const respueta = await client.verifyIdToken({
       idToken,
       audience: process.env.GOOGLE_CLIENT,
     });
-    const { email_verified, name, email } = respueta.payload;
-    if (email_verified) {
-      User.findOne({ email }).exec(async (error, user) => {
-        if (user) {
-          const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: "7d",
-          });
-          const { _id, email, name, role } = user;
-          return res.json({
-            token,
-            user: { _id, email, name, role },
-          });
-        } else {
-          let password = email + "9190E6A657EEF0F1587F6815EA3C0F0A3CB0403F";
-          user = new User({
+    const { email_verified, name, email, picture } = respueta.payload;
+
+    if (!email_verified) throw "email google not verificated";
+
+    try {
+      const user = await User.findOne({ email }).populate("roles");
+      if (!user) {
+        try {
+          const newUser = new User({
             name,
+            lastName: "apelli",
+            accountGoogle: true,
             email,
-            username: name + "username",
-            password,
+            password: await User.encryptPassword(
+              "You shouldn't see this " + email
+            ),
           });
 
           try {
-            const data = await user.save();
-            const token = jwt.sign({ _id: data._id }, process.env.JWT_SECRET, {
-              expiresIn: "7d",
-            });
-
-            const { _id, email, name, role } = data;
-            return res.json({
-              token,
-              user: { _id, email, name, role },
-            });
+            const roles = await Role.findOne({ name: "student" });
+            newUser.roles = [roles._id];
           } catch (error) {
-            return res.status(400).json({
-              error: errorHandler(error),
-            });
+            return res.status(400).json({ error: ["it wasn't possible to login with google"] });
           }
+
+          await newUser.save();
+          const token = jwt.sign(
+            {
+              id: newUser._id,
+            },
+            process.env.JWT_SECRET,
+            {
+              expiresIn: "7d",
+            }
+          );
+          return res.json({
+            success: true,
+            message: "Signup success",
+            token: token,
+            user: {
+              name,
+              email,
+              picture,
+            },
+          });
+        } catch (error) {
+          return res.status(401).json({
+            error: errorHandler(error) + error,
+          });
         }
+      }
+
+      const token = jwt.sign(
+        {
+          id: user._id,
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "7d",
+        }
+      );
+
+      return res.json({
+        token,
+        user: {
+          name,
+          email,
+          picture,
+        },
       });
-    } else {
-      return res.status(400).json({
-        error: ["Google login failed, try again 1 "],
-      });
+    } catch (error) {
+      return res.status(400).json({ token: null, error: ["it wasn't possible to login with google"] });
     }
+   
   } catch (error) {
     return res.status(400).json({
-      error: [`Google login failed, try again 2 ${error}`],
+      error: [`Google sing up failed`],
     });
   }
 };
-export const deleteUserController = async (req, res) => {
+export const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
     await User.findByIdAndDelete(id);

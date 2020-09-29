@@ -3,12 +3,6 @@ import bcrypt from "bcryptjs";
 
 const userScheama = new Schema(
   {
-    username: {
-      type: String,
-      required: true,
-      trim: true,
-      unique: true,
-    },
     name: {
       type: String,
       trim: true,
@@ -25,6 +19,10 @@ const userScheama = new Schema(
       trim: true,
       maxlength: 100,
       match: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/g,
+    },
+    accountGoogle:{
+      type: Boolean,
+      required:true
     },
     password: {
       type: String,

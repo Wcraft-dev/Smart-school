@@ -15,13 +15,13 @@ export default class Forgetpass extends Component {
     e.preventDefault();
     if (this.state.email) {
       try {
-        await axios.post(`${process.env.REACT_APP_API_URL}/forget`, {
+        await axios.post(`${process.env.REACT_APP_API_URL}/auth/forget`, {
           email: this.state.email,
         });
+        toast.success(`Please Check your name email (${this.state.email})`);
         this.setState({
           email: "",
         });
-        toast.success(`Please Check your name email (${this.state.email})`);
       } catch (e) {
         if (e.response) {
           e.response.data.error.map((error) => {

@@ -2,7 +2,7 @@ import { check } from "express-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/auth.model";
 
-export const validRegiester = [
+export const singUp = [
   check("name", "Name is required")
     .not()
     .isEmpty()
@@ -11,10 +11,6 @@ export const validRegiester = [
       max: 32,
     })
     .withMessage("name must be between 4 to 32 characters"),
-  check("username", "Username")
-    .not()
-    .isEmpty()
-    .withMessage("Username is required"),
   check("email").not().isEmpty().withMessage("Must be a valid email address"),
   check("password", "password is required").notEmpty(),
   check("password")
@@ -25,7 +21,7 @@ export const validRegiester = [
     .matches(/\d/)
     .withMessage("password msut contain a number"),
 ];
-export const validLogin = [
+export const singIn = [
   check("email").isEmail().withMessage("Must be a valid email address"),
   check("password", "password is required").notEmpty(),
   check("password")
@@ -36,14 +32,14 @@ export const validLogin = [
     .matches(/\d/)
     .withMessage("password must contain a number"),
 ];
-export const forgotPasswordValidator = [
+export const forgotPassword = [
   check("email")
     .not()
     .isEmpty()
     .isEmail()
     .withMessage("Must be a valid email address"),
 ];
-export const resetPasswordValidator = [
+export const resetPassword = [
   check("newPassword")
     .not()
     .isEmpty()
