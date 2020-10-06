@@ -1,20 +1,23 @@
 import React, { Component } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import { isAuth } from "../../helpers/auth";
+import { toast } from "react-toastify";
 import axios from "axios";
+import Google from "../../components/buttons/Google"
+import { isAuth } from "../../helpers/auth";
 import { Redirect } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 export default class Register extends Component {
   state = {
     name: "",
     email: "",
     password1: "",
     password2: "",
+    authenticator: null,
   }
   handlerChange = (text) => (e) => {
     this.setState({[text]: e.target.value });
   };
+  what = (site)=>{
+    this.props.history.push(site)
+  }
   handlerSubmit = async (e) => {
     e.preventDefault();
     if (this.state.name && this.state.email && this.state.password1) {
@@ -48,11 +51,26 @@ export default class Register extends Component {
       toast.error("Please fill all fields");
     }
   };
+  componentDidMount() {
+    (async () => {
+      const x = await isAuth();
+      if (!x[0]) {
+        if (x[1]) {
+          this.setState({
+            authenticator: <Redirect to={x[1]} />,
+          });
+        }
+      } else {
+        this.setState({
+          authenticator: true,
+        });
+      }
+    })();
+  }
   render() {
     return (
       <div className="container">
-        {isAuth() ? <Redirect to="/" /> : null}
-        <ToastContainer />
+        {this.state.authenticator}
         <div className="row">
           <div className="col-sm-9 col-md-7 col-lg-5 mx-auto">
             <div className="card card-signin my-5">
@@ -110,15 +128,7 @@ export default class Register extends Component {
                     Sign up
                   </button>
                   <hr className="my-4" />
-                  <button
-                    className="btn btn-lg btn-google btn-block text-uppercase"
-                    type="reset"
-                  >
-                    <FontAwesomeIcon
-                      icon={["fab", "google"]}
-                      className="mr-2"
-                    />
-                  </button>
+                  <Google what={this.what}/>
                 </form>
               </div>
             </div>

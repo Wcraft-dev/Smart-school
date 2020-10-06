@@ -1,11 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter, Switch} from "react-router-dom";
-import Routess from "./routes/routes.js";
+import App from './App'
 import "react-toastify/dist/ReactToastify.css";
 import "./assets/css/App.css";
-
-//import AdminNavbar from "./components/Navbars/AdminNavbar.js";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -48,11 +45,7 @@ library.add(
 require("dotenv").config();
 
 ReactDOM.render(
-  <BrowserRouter>
-    <Switch>
-      <Routess/>
-    </Switch>
-  </BrowserRouter>,
+  <App/>,
   document.getElementById("root")
   );
   

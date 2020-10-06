@@ -1,13 +1,16 @@
 //import { Redirect,Link } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 //import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { Component } from "react";
 
 export default class Forgetpass extends Component {
-  state = {
-    email: "",
-  };
+  constructor(props){
+    super(props)
+    this.state ={
+      email: "",
+    }
+  }
   handlerChange = (text) => (e) => {
     this.setState({ [text]: e.target.value });
   };
@@ -37,7 +40,6 @@ export default class Forgetpass extends Component {
   render() {
     return (
       <div className="container">
-        <ToastContainer />
         <div className="row">
           <div className="col-sm-9 col-md-7 col-lg-5 mx-auto">
             <div className="card card-signin my-5">

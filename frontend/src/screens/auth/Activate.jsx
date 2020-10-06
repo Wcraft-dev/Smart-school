@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { isAuth, authenticate } from "../../helpers/auth";
 import jwt from "jsonwebtoken";
 import axios from "axios";
@@ -7,11 +7,15 @@ import { Redirect } from "react-router-dom";
 //import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default class Activate extends Component {
-  state = {
-    name: "",
-    token: "",
-    show: true,
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: "",
+      token: "",
+      show: true,
+    }
+  }
+
   componentDidMount() {
     if (this.props.match.params.token) {
       let name = jwt.decode(this.props.match.params.token);
@@ -49,7 +53,6 @@ export default class Activate extends Component {
     return (
       <div>
         {isAuth() ? <Redirect to="/" /> : null}
-        <ToastContainer />
         <div className="container-md">
           <h1 className="text-weigth-bold">Welcome, {this.state.name.name}</h1>
           <form onSubmit={this.handleSubmit}>
@@ -65,7 +68,7 @@ const Activate = ({ match, history }) => {
   return (
     <div>
       {isAuth() ? <Redirect to="/" /> : null}
-      <ToastContainer />
+      <ToastsContainer />
       <div className="container-md">
         <h1 className="text-weigth-bold">Welcome, {name.name}</h1>
         <form onSubmit={handleSubmit}>

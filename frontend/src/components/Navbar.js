@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import routes from '../routes/'
 
 export default class AdminNavbar extends Component {
   render() {
@@ -11,10 +12,12 @@ export default class AdminNavbar extends Component {
         </button>
         <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div className="navbar-nav ml-auto">
-            <Link className="nav-link active" to="/">Home</Link>
-            <Link className="nav-link disable" to="/user/login">Sign up</Link>
-            <Link className="nav-link disable" to="/user/register">Sign in</Link>
-            <Link className="nav-link" to="/user/class">Class</Link>
+            {routes.map(route =>{
+              if (!route.hidden) {
+                return <Link className="nav-link" to={route.path} key={route.path}>{route.name}</Link>
+              }
+              return false
+            })}
           </div>
         </div>
     </nav>

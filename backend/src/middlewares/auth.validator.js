@@ -51,7 +51,7 @@ export const resetPassword = [
 export const accessByToken = async (req, res, next) => {
   try {
     const token = req.headers["x-access-token"];
-    if (!token) throw "No token provided";
+    if (!token) throw "No token provided" + req.headers["x-access-token"]+ req;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id, { password: 0 });
     if (!user) throw "no user found";

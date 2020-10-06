@@ -1,14 +1,15 @@
 import {Router} from 'express'
 import {addClas, deleteClass, getClas, getClases,updateClas}  from '../controllers/class.controller'
+import {accessByToken}  from "../middlewares/auth.validator"
 const router = Router();
 
 router.route('/')
-    .get(getClases)
-    .post(addClas)
+    .get(accessByToken,getClases)
+    .post(accessByToken,addClas)
 
 router.route('/:id')
-    .get(getClas)
-    .put(updateClas)
-    .delete(deleteClass)
+    .get(accessByToken,getClas)
+    .put(accessByToken,updateClas)
+    .delete(accessByToken,deleteClass)
 
 export default router;

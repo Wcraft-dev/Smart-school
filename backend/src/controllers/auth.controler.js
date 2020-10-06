@@ -12,7 +12,22 @@ import experssJwt from "express-jwt";
 
 sgMail.setApiKey(process.env.MAIL_KEY);
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT);
-
+export const user = async (req,res) =>{
+  try {
+    const token  = req.headers["x-access-token"]
+    jwt.verify(token, process.env.JWT_SECRET);
+    const decode = jwt.decode(token);
+    console.log(decode)
+    try {
+      const role = await User.findOne({ _id:decode.id},{password: 0,name: 0,lastName:0,accountGoogle:0,createdAt:0,updatedAt:0,email:0}).populate("roles")
+      res.json({roleIs:role.roles[0].name})
+    } catch (error) {
+      res.status(403).json({error:"try again user not found"})
+    }
+  } catch (error) {
+    res.status(403).json({error:"unautherized"})
+  }
+}
 export const singUp = async (req, res) => {
   const { name, email, password } = req.body;
   const errors = validationResult(req);
@@ -171,7 +186,7 @@ export const singIn = async (req, res) => {
     });
   } else {
     try {
-      const userFound = await User.findOne({ email }).populate("roles");
+      const userFound = await User.findOne({ email });
       if (!userFound) throw "User not found";
       try {
         const matchPassword = await User.authenticate(
