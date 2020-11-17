@@ -13,5 +13,6 @@ router.put("/resetPassword", validator.resetPassword, controller.resetPassword);
 router.post("/activation", controller.activation);
 router.get("/users",  controller.getUserTesting);
 router.delete("/users/:id",  controller.deleteUser);
+router.post("/chageRole",controller.changeRole);
 
 export default router;

@@ -15,5 +15,10 @@ router.route('/admin')
 
 router.route('/:id')
     .delete(deleteUser)
+router.route('/hola')
+    .get((req,res)=>{
+        res.json({hola:"g"})
+
+    })
 
 export default router;

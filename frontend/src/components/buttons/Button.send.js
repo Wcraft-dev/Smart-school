@@ -1,16 +1,16 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
+import { Button } from "@material-ui/core";
+import React from "react";
 
-export default class ButtonSend extends Component {
-  static propTypes = {
-    inWait: PropTypes.bool.isRequired,
-  };
-   
-   render() {
-    return (
-      <button type="submit" disabled={this.props.state === 'wait' ? true: false}>
-        {this.props.state === 'wait' ? 'enviando...': this.props.textDefault}
-      </button>
-    );
-  }
+export default function ButtonSend(props) {
+  return (
+    <Button
+      type="submit"
+      disabled={props.inWait ? true : false}
+      variant="contained"
+      fullWidth
+      color={props.inWait ? "primary" : "secondary"}
+    >
+      {props.inWait ? "Sending..." : props.textDefault}
+    </Button>
+  );
 }

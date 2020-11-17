@@ -1,30 +1,52 @@
-//import { Redirect,Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-//import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { Component } from "react";
+import React from "react";
+import { useState } from "react";
+import {
+  Typography,
+  Grid,
+  Button,
+  Paper,
+  makeStyles,
+  TextField,
+} from "@material-ui/core";
 
-export default class Forgetpass extends Component {
-  constructor(props){
-    super(props)
-    this.state ={
-      email: "",
-    }
-  }
-  handlerChange = (text) => (e) => {
-    this.setState({ [text]: e.target.value });
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    width: "100%",
+    height: "100%",
+    position: "relative",
+    backgroundImage: "url("+process.env.REACT_APP_BACKGROUND+")",
+    backgroundRepeat: "no-repeat",
+    backgroundColor:
+      theme.palette.type === "light"
+        ? theme.palette.grey[50]
+        : theme.palette.grey[900],
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  },
+  paper: {
+    padding: theme.spacing(5),
+  },
+}));
+
+export default function Forgetpass() {
+  const [email, setEmail] = useState("");
+  const classes = useStyles();
+  const handlerChange = (e) => {
+    setEmail(e.target.value);
   };
-  handlerSubmit = async (e) => {
+
+  const handlerSubmit = async (e) => {
     e.preventDefault();
-    if (this.state.email) {
+    if (email) {
       try {
         await axios.post(`${process.env.REACT_APP_API_URL}/auth/forget`, {
-          email: this.state.email,
+          email,
         });
-        toast.success(`Please Check your name email (${this.state.email})`);
-        this.setState({
-          email: "",
-        });
+        toast.success(`Please Check your name email (${email})`);
+        setEmail("");
       } catch (e) {
         if (e.response) {
           e.response.data.error.map((error) => {
@@ -35,40 +57,60 @@ export default class Forgetpass extends Component {
       }
     } else {
       toast.error("Please fill all fields");
+      return false;
     }
   };
-  render() {
-    return (
-      <div className="container">
-        <div className="row">
-          <div className="col-sm-9 col-md-7 col-lg-5 mx-auto">
-            <div className="card card-signin my-5">
-              <div className="card-body">
-                <h5 className="card-title text-center">Forget password</h5>
-                <form className="form-signup" onSubmit={this.handlerSubmit}>
-                  <div className="form-label-group">
-                    <input
-                      type="email"
-                      placeholder="Email address"
-                      className="form-control"
-                      id="inputPassword1"
-                      onChange={this.handlerChange("email")}
-                      value={this.state.email}
-                    />
-                    <label htmlFor="inputPassword1">Email adress</label>
-                  </div>
-                  <button
-                    className="btn btn-lg btn-primary btn-block text-uppercase"
-                    type="submit"
-                  >
-                    Submit
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <main className={classes.root}>
+      <Grid
+        container
+        component="div"
+        style={{ height: "100vh" }}
+        direction="column"
+        justify="center"
+        alignItems="center"
+      >
+        <Grid item component={Paper} elevation={6} className={classes.paper}>
+          <form onSubmit={handlerSubmit} autoComplete="off">
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography component="h4" variant="h4" align="center">
+                  Forget password
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  type="email"
+                  label="Email address"
+                  id="inputPassword1"
+                  variant="outlined"
+                  required
+                  fullWidth
+                  onChange={handlerChange}
+                  value={email}
+                />
+              </Grid>
+              <Grid
+                container
+                item
+                xs={12}
+                direction="row"
+                justify="center"
+                alignItems="center"
+              >
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  type="submit"
+                  size="large"
+                >
+                  Submit
+                </Button>
+              </Grid>
+            </Grid>
+          </form>
+        </Grid>
+      </Grid>
+    </main>
+  );
 }

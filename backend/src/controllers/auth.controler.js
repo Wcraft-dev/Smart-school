@@ -7,52 +7,66 @@ import _ from "lodash";
 import jwt from "jsonwebtoken";
 import sgMail from "@sendgrid/mail";
 import "../config/config";
-import fetch from "node-fetch";
-import experssJwt from "express-jwt";
 
 sgMail.setApiKey(process.env.MAIL_KEY);
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT);
-export const user = async (req,res) =>{
+const reqvalidation = ({ errors }) => {
+  let validation = [];
+  if (errors.length > 0) {
+    errors.map(({ msg }) => {
+      validation.push(msg);
+    });
+  } else {
+    validation = false;
+  }
+  return validation;
+};
+
+export const user = async (req, res) => {
   try {
-    const token  = req.headers["x-access-token"]
+    const token = req.headers["x-access-token"];
     jwt.verify(token, process.env.JWT_SECRET);
     const decode = jwt.decode(token);
-    console.log(decode)
+    console.log(decode);
     try {
-      const role = await User.findOne({ _id:decode.id},{password: 0,name: 0,lastName:0,accountGoogle:0,createdAt:0,updatedAt:0,email:0}).populate("roles")
-      res.json({roleIs:role.roles[0].name})
+      const role = await User.findOne(
+        { _id: decode.id },
+        {
+          password: 0,
+          name: 0,
+          lastName: 0,
+          accountGoogle: 0,
+          createdAt: 0,
+          updatedAt: 0,
+          email: 0,
+        }
+      ).populate("roles");
+      res.json({ roleIs: role.roles[0].name });
     } catch (error) {
-      res.status(403).json({error:"try again user not found"})
+      res.status(403).json({ error: "try again user not found" });
     }
   } catch (error) {
-    res.status(403).json({error:"unautherized"})
+    res.status(403).json({ error: "unautherized" });
   }
-}
+};
 export const singUp = async (req, res) => {
   const { name, email, password } = req.body;
-  const errors = validationResult(req);
-  //validation to req.body
-  if (!errors.isEmpty()) {
-    let getError = [];
-    errors.array().map((errors) => {
-      getError.push(errors.msg);
-    });
-    return res.status(422).json({
-      error: getError,
-    });
+  const errors = reqvalidation(validationResult(req));
+  if (errors) {
+    return res.status(422).json({ error: errors });
   } else {
     try {
       const user = await User.findOne({ email });
       //If user exist
       if (user) {
         return res.status(400).json({
-          error: "Email is taken",
+          error: ["Email is taken"],
         });
       }
     } catch (error) {
       if (error) {
         return res.status(400).json({
-          error: "Try again please",
+          error: ["Try again please"],
         });
       }
     }
@@ -86,9 +100,10 @@ export const singUp = async (req, res) => {
       return res.json({
         message: "Email has been sent to " + email,
       });
-    } catch (errox) {
+    } catch (error) {
       return res.status(400).json({
-        error: errox,
+        message: "we couldn't send the verification email",
+        error,
       });
     }
   }
@@ -127,11 +142,9 @@ export const activation = async (req, res) => {
               const re = await Role.findOne({ name: "student" });
               newUser.roles = [re._id];
             } catch (error) {
-              return res
-                .status(400)
-                .json({
-                  error: ["we coudn't validated your account try again"],
-                });
+              return res.status(400).json({
+                error: ["we coudn't validated your account try again"],
+              });
             }
           }
 
@@ -188,14 +201,22 @@ export const singIn = async (req, res) => {
     try {
       const userFound = await User.findOne({ email });
       if (!userFound) throw "User not found";
+      if (userFound.accountGoogle) {
+        throw "Account is Google";
+      }
+
       try {
         const matchPassword = await User.authenticate(
           password,
           userFound.password
         );
+
         if (!matchPassword) throw "invalid password";
       } catch (error) {
-        return res.status(400).json({ token: null, error: ["we coudn't validated your account"] });
+        return res.status(400).json({
+          token: null,
+          error: [error || "we coudn't validated your password"],
+        });
       }
 
       const token = jwt.sign(
@@ -217,7 +238,10 @@ export const singIn = async (req, res) => {
         },
       });
     } catch (error) {
-      return res.status(400).json({ token: null, error: ["we coudn't validated your account"] });
+      return res.status(400).json({
+        token: null,
+        error: [error || "we coudn't validated your account"],
+      });
     }
   }
 };
@@ -266,15 +290,19 @@ export const forgetPassword = async (req, res) => {
               message: `Email has been sent to ${email}`,
             });
           } catch (e) {
-            return res.json({ error: ["we coudn't send email, try again please"] });
+            return res.json({
+              error: ["we coudn't send email, try again please"],
+            });
           }
         } catch (err) {
           return res.status(400).json({
-            error: ["we coudn't validated your information"]
+            error: ["we coudn't validated your information"],
           });
         }
       } else {
-        return res.status(401).json({error:["it's account created with google try sing in google"]});
+        return res.status(401).json({
+          error: ["it's account created with google try sing in google"],
+        });
       }
     } catch (err) {
       return res.status(400).json({ error: ["email does not exist"] });
@@ -363,7 +391,9 @@ export const google = async (req, res) => {
             const roles = await Role.findOne({ name: "student" });
             newUser.roles = [roles._id];
           } catch (error) {
-            return res.status(400).json({ error: ["it wasn't possible to login with google"] });
+            return res
+              .status(400)
+              .json({ error: ["it wasn't possible to login with google"] });
           }
 
           await newUser.save();
@@ -412,9 +442,11 @@ export const google = async (req, res) => {
         },
       });
     } catch (error) {
-      return res.status(400).json({ token: null, error: ["it wasn't possible to login with google"] });
+      return res.status(400).json({
+        token: null,
+        error: ["it wasn't possible to login with google"],
+      });
     }
-   
   } catch (error) {
     return res.status(400).json({
       error: [`Google sing up failed`],
@@ -428,5 +460,18 @@ export const deleteUser = async (req, res) => {
     res.send("user delete success");
   } catch (err) {
     res.send("OPS!! worng ");
+  }
+};
+export const changeRole = async (req, res) => {
+  const { email, role } = req.body;
+  try {
+    const hola = await User.findOne({ email });
+    const { _id, name } = await Role.findOne({ name: role });
+    await User.findByIdAndUpdate(hola.id, {
+      roles: [_id],
+    });
+    res.json({ resultado: "salio bien se cambio a " + name });
+  } catch (error) {
+    res.status(400).json({ error });
   }
 };

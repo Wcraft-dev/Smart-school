@@ -1,12 +1,12 @@
-import React, { Component } from "react";
+import React from 'react'
 import { BrowserRouter as Router,Route, Switch } from "react-router-dom";
 import routes from "./routes/";
 import { ToastContainer } from 'react-toastify'
 import Navbar from './components/Navbar'
 
-export default class App extends Component {
-  render() {
-    return (
+
+export default function App() {
+  return (
       <Router>
         <Navbar/>
         <ToastContainer/>
@@ -22,6 +22,6 @@ export default class App extends Component {
           ))}
         </Switch>
       </Router>
-    );
-  }
+  )
 }
+

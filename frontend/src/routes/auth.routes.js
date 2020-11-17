@@ -1,5 +1,6 @@
-import Register from "../screens/auth/Register";
-import Login from "../screens/auth/Login";
+import SingUp from "../screens/auth/SignUp";
+import SingIn from "../screens/auth/SignIn";
+import SingOut from "../screens/auth/SignOut";
 import Activate from "../screens/auth/Activate";
 import Forget from "../screens/auth/Forgetpass";
 import Reset from "../screens/auth/Reset";
@@ -9,16 +10,22 @@ const singup = {
   hidden: false,
   private: false,
   name: "Sing Up",
-  component: Register,
+  component: SingUp,
 };
 const singin = {
   path: "/user/singin",
   hidden: false,
   private: false,
   name: "Sing In",
-  component: Login,
+  component: SingIn,
 };
-
+const singout = {
+  path: "/user/singout",
+  hidden: false,
+  private: false,
+  name: "Sing Out",
+  component: SingOut,
+};
 const forget = {
   path: "/user/forget",
   hidden: true,
@@ -42,4 +49,4 @@ const reset = {
   component: Reset,
 };
 
-export default [singin, singup, active, reset, forget];
+export default [singin, singup, active, reset, forget, singout];

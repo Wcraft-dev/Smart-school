@@ -1,10 +1,11 @@
 import cookie from "js-cookie";
 import axions from "axios";
 const access = [
-  { admin: ["dfsdfs", "dfsaf"] },
   { student: ["/student", "/ruta"] },
-  { teach: ["sss", "ff"] },
-  { god: ["sss", "ff"] },
+  { teacher: ["/teacher", "/ruta"] },
+  { parents: ["/parents", "/ruta"] },
+  { director: ["/director", "/ruta"] },
+  { God: ["/God", "/ruta"] },
 ];
 //set in cookie
 export const setCookie = (key, value) => {
@@ -55,43 +56,44 @@ export const authenticate = (response, next) => {
 //SingOut
 export const signout = (next) => {
   removeCookie("token");
-  removeCookie("user");
+  removeLocalStorage("user");
 };
 
 //Get user info from localstorage
-export const isAuth =  async (pathRequest) => {
+export const isAuth = async (pathRequest) => {
   if (window !== "undefined") {
     const cookieUser = getCookie("token");
     const data = localStorage.getItem("user");
     if (cookieUser && data) {
-    try{
-      const role = await axions.post(
-        `${process.env.REACT_APP_API_URL}/auth/`,
-        { undex: null },
-        {
-          headers: {
-            "Content-Type": "application/json;charset=UTF-8",
-            "x-access-token": cookieUser,
-          },
+      try {
+        const role = await axions.post(
+          `${process.env.REACT_APP_API_URL}/auth/`,
+          { undex: null },
+          {
+            headers: {
+              "Content-Type": "application/json;charset=UTF-8",
+              "x-access-token": cookieUser,
+            },
+          }
+        );
+        const valor = access
+          .map((a) => {
+            return a[role.data.roleIs];
+          })
+          .filter(Boolean);
+        if (!valor[0].includes(pathRequest)) {
+          return [false, valor[0][0]];
+        } else {
+          return [true];
         }
-      )
-      const valor = access
-        .map((a) => {
-          return a[role.data.roleIs];
-        })
-        .filter(Boolean);
-        if(!valor[0].includes(pathRequest)){
-          return [false,valor[0][0]]
-        }else{
-          return [true]
-        }
-      
-    }catch(error){
-      return [false,"/user/singin"]
-    }
-        
-    }else{
-      return [false,'/user/singin'] 
+      } catch (error) {
+        return [false, "/user/singin"];
+      }
+    } else {
+      if (pathRequest === "/user/singup" || pathRequest === "/user/singin") {
+        return [true];
+      }
+      return [false, "/user/singin"];
     }
   }
 };

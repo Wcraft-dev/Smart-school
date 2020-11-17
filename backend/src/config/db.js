@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const URL = process.env.MONGODB_URL
   ? process.env.MONGODB_URL
   : "mongodb://localhost/mern";
-
+  
 const connectDB = async () => {
   try {
     const connection = await mongoose.connect(URL, {

@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from './App'
 import "react-toastify/dist/ReactToastify.css";
-import "./assets/css/App.css";
+//import "./assets/css/App.css";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {

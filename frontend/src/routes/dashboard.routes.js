@@ -1,4 +1,5 @@
 import Student from "../screens/dashboard/student/";
+import Teacher from "../screens/dashboard/teacher/";
 import Index from "../screens/";
 import notFound from '../screens/404'
 
@@ -23,5 +24,12 @@ const student = {
   name: "Dashboard student",
   component: Student,
 };
+const teacher = {
+  path: "/teacher",
+  hidden: true,
+  private: false,
+  name: "Dashboard teacher",
+  component: Teacher,
+};
 
-export default [student, index, notfound];
+export default [student, index, teacher,notfound];

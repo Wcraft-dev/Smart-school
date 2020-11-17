@@ -1,81 +1,99 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
+import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { isAuth, authenticate } from "../../helpers/auth";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
-//import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Typography, Grid, Button, Paper, makeStyles } from "@material-ui/core";
 
-export default class Activate extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      name: "",
-      token: "",
-      show: true,
-    }
-  }
+const useStyles = makeStyles((theme) => ({
+  root: {
+    width: "100%",
+    height: "100%",
+    position: "relative",
+    backgroundImage: "url("+process.env.REACT_APP_BACKGROUND+")",
+    backgroundRepeat: "no-repeat",
+    backgroundColor:
+      theme.palette.type === "light"
+        ? theme.palette.grey[50]
+        : theme.palette.grey[900],
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  },
+  paper: {
+    padding: theme.spacing(5),
+  },
+}));
 
-  componentDidMount() {
-    if (this.props.match.params.token) {
-      let name = jwt.decode(this.props.match.params.token);
-      this.setState({
-        name: name,
-        token: this.props.match.params.token,
-      });
+export default function Activate(props) {
+  const classes = useStyles();
+  const [name, setName] = useState({});
+  const [token, setToken] = useState(null);
+  const [authenticator, setAuthenticator] = useState(null);
+
+  useEffect(() => {
+    if (props.match.params.token) {
+      let dataName = jwt.decode(props.match.params.token);
+      setName(dataName);
+      setToken(props.match.params.token);
     }
-  }
-  handleSubmit = async (e) => {
+  }, [props, setName, setToken]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post(
         `${process.env.REACT_APP_API_URL}/auth/activation`,
         {
-          token: this.state.token,
+          token: token,
         }
       );
-      this.setState({ show: false });
       toast.success(res.data.message);
-       authenticate(res, () => {
+      authenticate(res, () => {
         toast.success(`Bienvenido ${res.data.user.name}`);
-        if (isAuth().role === "student") {
-          this.props.history.push("/student");
-        } else {
-          this.props.history.push("/docente");
-        }
       });
-      //this.props.history.push("/login");
+      const place = await isAuth();
+      setAuthenticator(<Redirect to={place[1]} />);
     } catch (e) {
       toast.error(e.response.data.error);
     }
   };
-  render() {
-    return (
-      <div>
-        {isAuth() ? <Redirect to="/" /> : null}
-        <div className="container-md">
-          <h1 className="text-weigth-bold">Welcome, {this.state.name.name}</h1>
-          <form onSubmit={this.handleSubmit}>
-            <button className="btn btn-secondary">Activate your account</button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-}
-/*
-const Activate = ({ match, history }) => {
   return (
-    <div>
-      {isAuth() ? <Redirect to="/" /> : null}
-      <ToastsContainer />
-      <div className="container-md">
-        <h1 className="text-weigth-bold">Welcome, {name.name}</h1>
-        <form onSubmit={handleSubmit}>
-          <button className="btn btn-secondary">Activate your account</button>
-        </form>
-      </div>
-    </div>
+    <main className={classes.root}>
+      {authenticator}
+      <Grid
+        container
+        component="div"
+        style={{ height: "100vh" }}
+        direction="column"
+        justify="center"
+        alignItems="center"
+      >
+        <Grid item component={Paper} elevation={6} className={classes.paper}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography component="h4" variant="h4" align="center">
+                Welcome, {name.name || "new user"}
+              </Typography>
+            </Grid>
+            <Grid
+              container
+              item
+              xs={12}
+              direction="row"
+              justify="center"
+              alignItems="center"
+            >
+              <form onSubmit={handleSubmit}>
+                <Button variant="contained" color="secondary" type="submit">
+                  Activate your account
+                </Button>
+              </form>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
+    </main>
   );
-};
-export default Activate;*/
+}
