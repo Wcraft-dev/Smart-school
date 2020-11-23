@@ -60,10 +60,15 @@ export const signout = (next) => {
 };
 
 //Get user info from localstorage
-export const isAuth = async (pathRequest) => {
+export const isAuth = async (pathRequest,unData) => {
   if (window !== "undefined") {
     const cookieUser = getCookie("token");
     const data = localStorage.getItem("user");
+    if(unData){
+      if(cookieUser && data){
+        return JSON.parse(data)
+      }
+    }
     if (cookieUser && data) {
       try {
         const role = await axions.post(

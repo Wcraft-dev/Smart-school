@@ -8,35 +8,35 @@ import Reset from "../screens/auth/Reset";
 const singup = {
   path: "/user/singup",
   hidden: false,
-  private: false,
+  login: false,
   name: "Sing Up",
   component: SingUp,
 };
 const singin = {
   path: "/user/singin",
   hidden: false,
-  private: false,
+  login: false,
   name: "Sing In",
   component: SingIn,
 };
 const singout = {
   path: "/user/singout",
   hidden: false,
-  private: false,
+  login: false,
   name: "Sing Out",
   component: SingOut,
 };
 const forget = {
   path: "/user/forget",
   hidden: true,
-  private: false,
+  login: false,
   name: "Recover Password",
   component: Forget,
 };
 const active = {
   path: "/user/activate/:token",
   hidden: true,
-  private: false,
+  login: false,
   name: "Acctivation your account",
   component: Activate,
 };
@@ -44,7 +44,7 @@ const active = {
 const reset = {
   path: "/user/passwordReset/:token",
   hidden: true,
-  private: false,
+  login: false,
   name: "Reset your password",
   component: Reset,
 };
