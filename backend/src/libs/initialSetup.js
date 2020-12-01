@@ -1,5 +1,6 @@
 import Role from "../models/role.model";
-export const createRoles = async () => {
+
+export default async function () {
   try {
     const count = await Role.estimatedDocumentCount();
     if (count) return;
@@ -14,4 +15,4 @@ export const createRoles = async () => {
   } catch (error) {
     console.log("look at error that happend" + error);
   }
-};
+}
