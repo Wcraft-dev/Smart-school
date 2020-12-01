@@ -21,7 +21,7 @@ const singin = {
 };
 const singout = {
   path: "/user/singout",
-  hidden: false,
+  hidden: true,
   login: false,
   name: "Sing Out",
   component: SingOut,

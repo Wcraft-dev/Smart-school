@@ -1,36 +1,34 @@
-import React from 'react'
-import { BrowserRouter as Router,Route, Switch } from "react-router-dom";
+import React from "react";
+import { useState } from "react";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import routes from "./routes/";
-import { ToastContainer } from 'react-toastify'
-import Navbar from './components/bar'
-import { isAuth } from './helpers/auth';
-import { useEffect } from 'react';
+import { ToastContainer } from "react-toastify";
+import Navbar from "./components/Navbar";
 
-
+const LoginContext = React.createContext();
 export default function App() {
-  useEffect(() => {
-    async function datos (){
-      await isAuth(null,true)
+  const [login, setLogin] = useState(false);
 
-    }
-    datos()
-  }, [])
   return (
-      <Router>
-        <Navbar login={false}/>
-        <ToastContainer/>
+    <Router>
+      <LoginContext.Provider value={[login, setLogin]}>
+        <Navbar login={login} />
+        <ToastContainer />
         <Switch>
-          {routes.map((route) => (
-            <Route
-              key={route.path}
-              path={route.path}
-              component={route.component}
-              exact={true}
-              permiss={route.private}
-            />
-          ))}
+          {routes.map((route) => {
+            return (
+              <Route
+                key={route.path}
+                path={route.path}
+                exact={true}
+                component={route.component}
+                permiss={route.private}
+             />
+            );
+          })}
         </Switch>
-      </Router>
-  )
+      </LoginContext.Provider>
+    </Router>
+  );
 }
-
+export { LoginContext };

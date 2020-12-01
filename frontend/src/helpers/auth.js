@@ -1,5 +1,13 @@
-import cookie from "js-cookie";
 import axions from "axios";
+import SocketClient from "socket.io-client";
+import {
+  setCookie,
+  removeCookie,
+  getCookie,
+  setLocalStorage,
+  removeLocalStorage,
+} from "./clientSave";
+
 const access = [
   { student: ["/student", "/ruta"] },
   { teacher: ["/teacher", "/ruta"] },
@@ -7,73 +15,61 @@ const access = [
   { director: ["/director", "/ruta"] },
   { God: ["/God", "/ruta"] },
 ];
-//set in cookie
-export const setCookie = (key, value) => {
-  if (window !== "undefined") {
-    cookie.set(key, value, {
-      //1 Day
-      expires: 1,
-    });
-  }
-};
 
-export const removeCookie = (key) => {
-  if (window !== "undefined") {
-    cookie.remove(key, {
-      expires: 1,
-    });
-  }
-};
+const login = (state) => {
+  const socket = SocketClient(process.env.REACT_APP_API_URL.split("api")[0], {
+    extraHeaders: {
+      user: getCookie("token"),
+    },
+  });
 
-// get from cookie like token
-export const getCookie = (key) => {
-  if (window !== "undefined") {
-    return cookie.get(key);
-  }
+  socket.emit("Are you connected", getCookie("token"));
+  socket.on("new notification", (res) => {
+    console.log(res);
+  });
+  socket.on("Are you connected", (booleanx) => {
+    try {
+      state(booleanx);
+    } catch (e) {
+      console.log("mmm... state");
+    }
+  });
+  return { socket, state };
 };
-
-// set in localstorage
-export const setLocalStorage = (key, value) => {
-  if (window !== "undefined") {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-};
-
-//Remove from localStorage
-export const removeLocalStorage = (key) => {
-  if (window !== "undefined") {
-    localStorage.removeItem(key);
-  }
-};
-
+let puedo = null;
 //Auth user after login
-export const authenticate = (response, next) => {
+export const authenticate = (response, state, next) => {
   setCookie("token", response.data.token);
   setLocalStorage("user", response.data.user);
+  puedo = login(state);
   next();
 };
 
-//SingOut
-export const signout = (next) => {
+export const signout = () => {
   removeCookie("token");
   removeLocalStorage("user");
+  puedo.socket.disconnect();
+  puedo.state(false);
 };
 
-//Get user info from localstorage
-export const isAuth = async (pathRequest,unData) => {
-  if (window !== "undefined") {
-    const cookieUser = getCookie("token");
-    const data = localStorage.getItem("user");
-    if(unData){
-      if(cookieUser && data){
-        return JSON.parse(data)
+export const isAuth = async (pathRequest, state) => {
+  const cookieUser = getCookie("token");
+  const data = localStorage.getItem("user");
+  if (pathRequest === "/user/singup" || pathRequest === "/user/singin") {
+    if (!cookieUser) {
+      if (!data) {
+        return [false, null];
       }
     }
+  }
+  if (window !== "undefined") {
     if (cookieUser && data) {
       try {
-        const role = await axions.post(
+        const { data } = await axions.post(
           `${process.env.REACT_APP_API_URL}/auth/`,
-          { undex: null },
+          {
+            data: "",
+          },
           {
             headers: {
               "Content-Type": "application/json;charset=UTF-8",
@@ -81,24 +77,31 @@ export const isAuth = async (pathRequest,unData) => {
             },
           }
         );
+
+        const permission = data.roleIs;
+
         const valor = access
-          .map((a) => {
-            return a[role.data.roleIs];
+          .map((ruta) => {
+            return ruta[permission];
           })
-          .filter(Boolean);
-        if (!valor[0].includes(pathRequest)) {
-          return [false, valor[0][0]];
+          .filter(Boolean)[0];
+        if (pathRequest === "/user/singup" || pathRequest === "/user/singin") {
+          return [true,valor[0]];
         } else {
-          return [true];
+          const found = valor.indexOf(pathRequest);
+          if (found !== -1) {
+            if(puedo){
+              puedo.socket.disconnect()
+            }
+            puedo = login(state);
+            return [true,valor[0]];
+          }else{
+            return [false,valor[0]]
+          }
         }
       } catch (error) {
         return [false, "/user/singin"];
       }
-    } else {
-      if (pathRequest === "/user/singup" || pathRequest === "/user/singin") {
-        return [true];
-      }
-      return [false, "/user/singin"];
     }
   }
 };

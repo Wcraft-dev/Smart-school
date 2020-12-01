@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+import { useEffect, useContext,useCallback } from "react";
 import { authenticate, isAuth } from "../../helpers/auth";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
 import Google from "../../components/buttons/Google";
 import Link from "../../components/Link";
-import { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Copyright from "../../components/Copyright";
 import {
@@ -18,7 +18,7 @@ import {
   Typography,
   Divider,
 } from "@material-ui/core";
-
+import { LoginContext } from "../../App";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 
 const useStyles = makeStyles((theme) => ({
@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
     height: "100vh",
   },
   image: {
-    backgroundImage: "url("+process.env.REACT_APP_BACKGROUND+")",
+    backgroundImage: "url(" + process.env.REACT_APP_BACKGROUND + ")",
     backgroundRepeat: "no-repeat",
     backgroundColor:
       theme.palette.type === "light"
@@ -56,25 +56,31 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Login(props) {
   const classes = useStyles();
+
+  const [login, setLogin] = useContext(LoginContext);
   const [data, setData] = useState({
     email: "",
     password: "",
   });
 
   const [authenticator, setAuthenticator] = useState(null);
+  const state = useCallback((booleanx) => {
+    setLogin(booleanx);
+  },[setLogin]);
+
   useEffect(() => {
-    async function funcz() {
-      const x = await isAuth();
-      if (!x[0]) {
+    async function valid() {
+      const x = await isAuth(props.match.path, state);
+      if (x[0]) {
         if (x[1]) {
           setAuthenticator(<Redirect to={x[1]} />);
         }
       } else {
-        setAuthenticator(true);
+        setAuthenticator(false);
       }
     }
-    funcz();
-  }, []);
+    valid();
+  }, [props,state]);
   const handlerChange = (text) => (e) => {
     setData({
       ...data,
@@ -86,6 +92,7 @@ export default function Login(props) {
   };
   const handlerSubmit = async (e) => {
     e.preventDefault();
+
     if (data.email && data.password) {
       try {
         const res = await axios.post(
@@ -95,7 +102,8 @@ export default function Login(props) {
             password: data.password,
           }
         );
-        authenticate(res, () => {
+
+        authenticate(res, state, () => {
           toast.success(`Bienvenido ${res.data.user.name}`);
           setData({ email: "", password: "" });
         });
@@ -159,7 +167,7 @@ export default function Login(props) {
               color="primary"
               className={classes.submit}
             >
-              Sign In
+              {login ? "ok":"Sign In"}
             </Button>
 
             <Grid container>
@@ -178,13 +186,13 @@ export default function Login(props) {
                 />
               </Grid>
             </Grid>
-            <Grid item xs={12} >
+            <Grid item xs={12}>
               <Box component="div" mt={3} mb={3}>
                 <Divider variant="middle" />
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <Google what={what} />
+              <Google what={what} update={state} />
             </Grid>
             <Box mt={5}>
               <Copyright />

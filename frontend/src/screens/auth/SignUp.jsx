@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import Google from "../../components/buttons/Google";
@@ -6,7 +6,6 @@ import { isAuth } from "../../helpers/auth";
 import { Redirect } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import {
-  Container,
   Avatar,
   Typography,
   Grid,
@@ -14,20 +13,20 @@ import {
   Divider,
   Box,
   Button,
-  CssBaseline,
   Paper,
 } from "@material-ui/core";
 import Link from "../../components/Link";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Copyright from "../../components/Copyright";
 import { handlerErrorsAuth } from "../../helpers/handlerErrors";
+import { LoginContext } from "../../App";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     height: "100vh",
   },
   image: {
-    backgroundImage: "url("+process.env.REACT_APP_BACKGROUND+")",
+    backgroundImage: "url(" + process.env.REACT_APP_BACKGROUND + ")",
     backgroundRepeat: "no-repeat",
     backgroundColor:
       theme.palette.type === "light"
@@ -57,6 +56,13 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Register(props) {
   const classes = useStyles();
+  const [login, setLogin] = useContext(LoginContext);
+  const state = useCallback(
+    (booleanx) => {
+      setLogin(booleanx);
+    },
+    [setLogin]
+  );
 
   const [data, setData] = useState({
     name: "",
@@ -68,18 +74,17 @@ export default function Register(props) {
 
   useEffect(() => {
     async function auth() {
-      const x = await isAuth(props.match.path);
-      console.log(x);
-      if (!x[0]) {
+      const x = await isAuth(props.match.path, state);
+      if (x[0]) {
         if (x[1]) {
           setAuthenticator(<Redirect to={x[1]} />);
         }
       } else {
-        setAuthenticator(true);
+        setAuthenticator(false);
       }
     }
     auth();
-  }, [props]);
+  }, [props, state]);
 
   const handlerChange = (text) => (e) => {
     setData({ ...data, [text]: e.target.value });
@@ -121,7 +126,7 @@ export default function Register(props) {
 
   return (
     <Grid container component="main" className={classes.root}>
-      {/*authenticator*/}
+      {authenticator}
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
         <div className={classes.paper}>
           <Avatar className={classes.avatar}>
@@ -212,7 +217,7 @@ export default function Register(props) {
               color="primary"
               className={classes.submit}
             >
-              Sign Up
+              {login ? "ok" : "Sign Up"}
             </Button>
 
             <Link
@@ -227,7 +232,7 @@ export default function Register(props) {
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <Google what={what} />
+              <Google what={what} update={state} />
             </Grid>
             <Box mt={5}>
               <Copyright />

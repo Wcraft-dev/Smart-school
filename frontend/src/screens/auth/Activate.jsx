@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     height: "100%",
     position: "relative",
-    backgroundImage: "url("+process.env.REACT_APP_BACKGROUND+")",
+    backgroundImage: "url(" + process.env.REACT_APP_BACKGROUND + ")",
     backgroundRepeat: "no-repeat",
     backgroundColor:
       theme.palette.type === "light"
@@ -56,6 +56,7 @@ export default function Activate(props) {
       const place = await isAuth();
       setAuthenticator(<Redirect to={place[1]} />);
     } catch (e) {
+      console.log(e);
       toast.error(e.response.data.error);
     }
   };

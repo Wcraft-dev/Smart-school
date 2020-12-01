@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 export default function Google(props) {
-  const classes =  useStyles()
+  const classes = useStyles();
   const sendGoogle = async (tokenId) => {
     try {
       const res = await axios.post(
@@ -28,35 +28,38 @@ export default function Google(props) {
           idToken: tokenId,
         }
       );
-      authenticate(res, () => {
+
+      authenticate(res, props.update,() => {
         toast.success(`Bienvenido ${res.data.user.name}`);
       });
       const place = await isAuth();
       props.what(place[1]);
     } catch (error) {
       toast.error(`failed sing in with google try again please 1`);
+      console.log(error);
     }
   };
   const responseGoogle = (response) => {
     sendGoogle(response.tokenId);
   };
-
   return (
-    <GoogleLogin
-      clientId={`${process.env.REACT_APP_GOOGLE_CLIENT}`}
-      onSuccess={responseGoogle}
-      onFailure={responseGoogle}
-      cookiePolicy={"single_host_origin"}
-      render={(rednerProps) => (
-        <Button
-          onClick={rednerProps.onClick}
-          disabled={rednerProps.disabled}
-          fullWidth
-          className={classes.linear}
-        >
-          <FontAwesomeIcon icon={["fab", "google"]} className="mr-2" />
-        </Button>
-      )}
-    />
+    <>
+      <GoogleLogin
+        clientId={`${process.env.REACT_APP_GOOGLE_CLIENT}`}
+        onSuccess={responseGoogle}
+        onFailure={responseGoogle}
+        cookiePolicy={"single_host_origin"}
+        render={(rednerProps) => (
+          <Button
+            onClick={rednerProps.onClick}
+            disabled={rednerProps.disabled}
+            fullWidth
+            className={classes.linear}
+          >
+            <FontAwesomeIcon icon={["fab", "google"]} className="mr-2" />
+          </Button>
+        )}
+      />
+    </>
   );
 }

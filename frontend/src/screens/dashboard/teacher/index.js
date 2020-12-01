@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import  validationAux  from "../../../helpers/validationAuth";
+import ValidationAux from "../../../helpers/validationAuth";
 import axios from "axios";
-import { getCookie } from "../../../helpers/auth";
+import { getCookie } from "../../../helpers/clientSave";
 import {
   Button,
   Card,
@@ -19,8 +19,6 @@ export default function Teacher(props) {
   const [data, setData] = useState([]);
   const [authenticator, setAuthenticator] = useState(null);
 
-  const path = props.match.path;
-
   useEffect(() => {
     async function fetchData() {
       const continues = async () => {
@@ -34,10 +32,12 @@ export default function Teacher(props) {
         );
         setData(data);
       };
-      await validationAux(path, setAuthenticator, continues);
+      if (authenticator === true) {
+        continues();
+      }
     }
     fetchData();
-  }, [path]);
+  }, [authenticator]);
   const dataUser = (bool) => {
     if (bool) {
       return localStorage.getItem("user");
@@ -46,7 +46,7 @@ export default function Teacher(props) {
   };
   return (
     <Container maxWidth="lg">
-      {authenticator}
+      <ValidationAux authAux={setAuthenticator} />
       <Grid container spacing={3}>
         {data.map((item) => {
           return (

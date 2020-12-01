@@ -38,6 +38,7 @@ export default function Signout(props) {
       toast.success("Good Bye, see you later");
     } catch (error) {
       toast.error("something went wrong , try again");
+      console.log(error)
     }
   });
   return (
@@ -50,7 +51,7 @@ export default function Signout(props) {
         justify="center"
         alignItems="center"
       >
-        <Grid itme component={Paper} elevation={6} className={classes.paper}>
+        <Grid item component={Paper} elevation={6} className={classes.paper}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import validationAux from "../../../helpers/validationAuth";
-import { getCookie } from "../../../helpers/auth";
+import ValidationAux from "../../../helpers/validationAuth";
+import { getCookie } from "../../../helpers/clientSave";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Horario from "../../../components/schedule";
@@ -51,6 +51,7 @@ export default function Asdhxhi(props) {
   const [getDataSchedule, setGetDataSchedule] = useState(true);
 
   const path = props.match.path;
+
   useEffect(() => {
     const continues = async () => {
       if (getDataSchedule) {
@@ -89,14 +90,11 @@ export default function Asdhxhi(props) {
         }
       }
       setAuthor(JSON.parse(dataUser(true)).name);
-      setAuthenticator(true);
       setGetDataSchedule(false);
     };
-    async function auth() {
-      await validationAux(path,setAuthenticator,continues)
-    }
-    auth();
-  }, [path, getDataSchedule]);
+    if (authenticator) continues();
+  }, [path, authenticator,getDataSchedule]);
+
   const dataUser = (bool) => {
     if (bool) {
       return localStorage.getItem("user");
@@ -267,7 +265,7 @@ export default function Asdhxhi(props) {
 
   return (
     <>
-      {authenticator}
+      <ValidationAux authAux={setAuthenticator} />
       <Container maxWidth="xl">
         <Grid container spacing={3}>
           <Grid item lg={6} xl={6} md={6} sm={12} xs={12}>
