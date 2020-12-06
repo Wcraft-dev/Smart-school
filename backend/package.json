@@ -8,8 +8,8 @@
     "dev": "nodemon src/index.js --exec babel-node",
     "start": "node build/index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["node","backend"],
+  "author": "Wcraft",
   "license": "ISC",
   "dependencies": {
     "@sendgrid/mail": "^7.2.5",
@@ -18,15 +18,14 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "express-jwt": "^6.0.0",
     "express-validator": "^6.6.1",
     "google-auth-library": "^6.0.6",
     "helmet": "^4.1.1",
     "jsonwebtoken": "^8.5.1",
-    "loadash": "^1.0.0",
     "mongoose": "^5.10.0",
     "morgan": "^1.10.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "socket.io": "^3.0.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.11.6",
