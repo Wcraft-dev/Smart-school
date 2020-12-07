@@ -1,26 +1,28 @@
 import express from "express";
+import http from "http";
 import cors from "cors";
+import socket from "./middlewares/socket";
 import morgan from "morgan";
+import initialSetup from "./libs/initialSetup";
 import bodyParser from "body-parser";
 import connectDB from "./config/db";
 import routes from "./routes/";
 import "./config/config";
-import { createRoles } from "./libs/initialSetup";
-const app = express();
 
-//Connnect to database
+const app = express();
+const server = http.createServer(app);
+const security = {
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+};
+socket(server,security);
+
 connectDB();
-createRoles();
-app.set("port", process.env.PORT || 6000);
-app.use(bodyParser.json());
+initialSetup();
 
 //middleware
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-  })
-);
-console.log(process.env.CLIENT_URL)
+app.use(cors(security));
+app.use(bodyParser.json());
 
 app.use(morgan("dev"));
 app.use(express.json());
@@ -28,4 +30,5 @@ app.use(express.json());
 //routes
 app.use("/api/", routes);
 
-export default app;
+console.log(`URL client: ${process.env.CLIENT_URL}`);
+export default server;

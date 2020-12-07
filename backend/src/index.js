@@ -1,8 +1,8 @@
 import app from './app'
 
-async function  main(){
-    await app.listen(app.get("port"));
-    console.log('Server working in port: ',app.get("port"))
+ function  main(){
+     app.listen(process.env.PORT  || 6000);
+    console.log(`Server working with  in port: ${process.env.PORT}`)
 }
 
 main();

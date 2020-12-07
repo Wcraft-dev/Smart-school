@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
+import config from "./config"
 
 const URL = process.env.MONGODB_URL
   ? process.env.MONGODB_URL
-  : "mongodb://localhost/mern";
+  : "null";
   
 const connectDB = async () => {
   try {

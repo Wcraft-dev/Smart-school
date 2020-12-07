@@ -19,7 +19,7 @@ const access = [
 const login = (state) => {
   const socket = SocketClient(process.env.REACT_APP_API_URL.split("api")[0], {
     extraHeaders: {
-      user: getCookie("token"),
+      token: getCookie("token"),
     },
   });
 
