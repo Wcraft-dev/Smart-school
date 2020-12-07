@@ -1,8 +1,12 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.fontFamily": "JetBrainsMono NF, Arial",
+    "editor.fontWeight": "bold",
+    "editor.fontLigatures": true
+  }
 }
