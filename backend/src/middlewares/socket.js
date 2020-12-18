@@ -87,7 +87,7 @@ export default function listen(server,security) {
         io.to(socket.id).emit("connected", Array.from(userSocketIdMap.keys()));
       });
       setInterval(() => {
-        io.to(socket.id).emit("new notification", `validator 切 ${socket.id}`);
+        io.to(socket.id).emit("new notification", `validator 切 ${socket.id} ${Math.random()}`);
       }, 10000);
 
       socket.on("notifications", (recipientUserName, messageContent) => {

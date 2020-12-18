@@ -25,7 +25,6 @@ export default function ValidationAux(props) {
         setRedirect(<Redirect to="/user/singin" />);
       }
     }
-    console.log(`hola jhair este es el valor de login : ${login}`)
     if (login === true) {
       authAux(login);
     }

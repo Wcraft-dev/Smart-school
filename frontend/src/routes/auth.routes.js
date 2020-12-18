@@ -49,4 +49,6 @@ const reset = {
   component: Reset,
 };
 
-export default [singin, singup, active, reset, forget, singout];
+const ex = [singin, singup, active, reset, forget, singout];
+
+export default ex;
