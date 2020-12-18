@@ -6,13 +6,16 @@ import { ToastContainer } from "react-toastify";
 import Navbar from "./components/Navbar";
 
 const LoginContext = React.createContext();
+const NotificationsContext = React.createContext();
 export default function App() {
   const [login, setLogin] = useState(false);
-
+  let [notification, setNotification] = useState(null);
   return (
     <Router>
       <LoginContext.Provider value={[login, setLogin]}>
-        <Navbar login={login} />
+        <NotificationsContext.Provider value={[notification, setNotification]}>
+          <Navbar />
+        </NotificationsContext.Provider>
         <ToastContainer />
         <Switch>
           {routes.map((route) => {
@@ -21,9 +24,9 @@ export default function App() {
                 key={route.path}
                 path={route.path}
                 exact={true}
-                component={route.component}
+                render={(routeProps) => <route.component {...routeProps} />}
                 permiss={route.private}
-             />
+              />
             );
           })}
         </Switch>
@@ -31,4 +34,4 @@ export default function App() {
     </Router>
   );
 }
-export { LoginContext };
+export { LoginContext, NotificationsContext };

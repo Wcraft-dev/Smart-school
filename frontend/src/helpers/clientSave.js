@@ -33,3 +33,8 @@ export const removeLocalStorage = (key) => {
     localStorage.removeItem(key);
   }
 };
+export const getLocalStorage = (key) => {
+  if (window !== "undefined") {
+    return localStorage.getItem(key);
+  }
+};

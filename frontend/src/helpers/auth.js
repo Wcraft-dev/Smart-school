@@ -1,4 +1,8 @@
 import axions from "axios";
+import React, { useState } from "react";
+import { useContext } from "react";
+import { NotificationsContext } from "../App";
+
 import SocketClient from "socket.io-client";
 import {
   setCookie,
@@ -6,6 +10,7 @@ import {
   getCookie,
   setLocalStorage,
   removeLocalStorage,
+  getLocalStorage,
 } from "./clientSave";
 
 const access = [
@@ -16,6 +21,8 @@ const access = [
   { God: ["/God", "/ruta"] },
 ];
 
+let puedo = null;
+let change;
 const login = (state) => {
   const socket = SocketClient(process.env.REACT_APP_API_URL.split("api")[0], {
     extraHeaders: {
@@ -24,9 +31,13 @@ const login = (state) => {
   });
 
   socket.emit("Are you connected", getCookie("token"));
+
   socket.on("new notification", (res) => {
-    console.log(res);
+    if (change) {
+      change(res);
+    }
   });
+
   socket.on("Are you connected", (booleanx) => {
     try {
       state(booleanx);
@@ -36,7 +47,18 @@ const login = (state) => {
   });
   return { socket, state };
 };
-let puedo = null;
+
+export default function Dispatchx(props) {
+  let [notification, setNotification] = useContext(NotificationsContext);
+  const manager = (res) => {
+    setNotification(notification + 1);
+    props.handle(res);
+  };
+  change = manager;
+
+  return <div></div>;
+}
+
 //Auth user after login
 export const authenticate = (response, state, next) => {
   setCookie("token", response.data.token);
@@ -54,13 +76,11 @@ export const signout = () => {
 
 export const isAuth = async (pathRequest, state) => {
   const cookieUser = getCookie("token");
-  const data = localStorage.getItem("user");
-  if (pathRequest === "/user/singup" || pathRequest === "/user/singin") {
-    if (!cookieUser) {
-      if (!data) {
-        return [false, null];
-      }
-    }
+  const data = getLocalStorage("user");
+
+  if (cookieUser === undefined || data === undefined) {
+    removeCookie("token");
+    removeLocalStorage("user");
   }
   if (window !== "undefined") {
     if (cookieUser && data) {
@@ -77,7 +97,6 @@ export const isAuth = async (pathRequest, state) => {
             },
           }
         );
-
         const permission = data.roleIs;
 
         const valor = access
@@ -86,21 +105,25 @@ export const isAuth = async (pathRequest, state) => {
           })
           .filter(Boolean)[0];
         if (pathRequest === "/user/singup" || pathRequest === "/user/singin") {
-          return [true,valor[0]];
+          return [true, valor[0]];
         } else {
           const found = valor.indexOf(pathRequest);
           if (found !== -1) {
-            if(puedo){
-              puedo.socket.disconnect()
+            if (puedo) {
+              puedo.socket.disconnect();
             }
             puedo = login(state);
-            return [true,valor[0]];
-          }else{
-            return [false,valor[0]]
+            return [true, valor[0]];
+          } else {
+            return [false, valor[0]];
           }
         }
       } catch (error) {
         return [false, "/user/singin"];
+      }
+    } else {
+      if (pathRequest === "/user/singup" || pathRequest === "/user/singin") {
+        return [false, null];
       }
     }
   }

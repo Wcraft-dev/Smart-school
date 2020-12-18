@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useHistory, Link } from "react-router-dom";
+import React, { useState,useContext } from "react";
+import { useHistory, NavLink } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -9,16 +9,18 @@ import {
   CssBaseline,
   IconButton,
   makeStyles,
-  Badge,
   Menu,
   MenuItem,
   Button,
+  Avatar,
+  Divider,
 } from "@material-ui/core/";
-import AccountCircle from "@material-ui/icons/AccountCircle";
-import NotificationsIcon from "@material-ui/icons/Notifications";
+import Notification from "./Notifications";
 import MenuIcon from "@material-ui/icons/Menu";
 import MoreIcon from "@material-ui/icons/MoreVert";
 import routes from "../routes/";
+import { getLocalStorage } from "../helpers/clientSave";
+import { LoginContext } from "../App";
 
 function HideOnScroll(props) {
   const { children } = props;
@@ -30,6 +32,9 @@ function HideOnScroll(props) {
   );
 }
 const useStyles = makeStyles((theme) => ({
+  normal: {
+    opacity: "0.9 !important",
+  },
   grow: {
     flexGrow: 1,
   },
@@ -41,6 +46,10 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up("sm")]: {
       display: "block",
     },
+  },
+  small: {
+    width: theme.spacing(4),
+    height: theme.spacing(4),
   },
   sectionDesktopLogin: {
     display: "none",
@@ -56,20 +65,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Notification() {
-  return (
-    <IconButton aria-label="show 0 new notifications" color="inherit">
-      <Badge badgeContent={5} color="secondary">
-        <NotificationsIcon />
-      </Badge>
-    </IconButton>
-  );
-}
-
 export default function NavBar(props) {
+  const [login, setLogin] = useContext(LoginContext);
+
   const classes = useStyles();
   let history = useHistory();
-
+  const getDataUser = () => {
+    const Get = getLocalStorage("user");
+    if (Get !== null) {
+      const r = JSON.parse(Get);
+      return r;
+    } else {
+      return { name: "", picture: "" };
+    }
+  };
+  const DataUser = [getDataUser().name, getDataUser().picture];
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
@@ -93,48 +103,39 @@ export default function NavBar(props) {
     history.push("/user/singout");
   };
 
-  const menuId = "primary-search-account-menu";
-  const mobileMenuId = "primary-search-account-menu-mobile";
+  const menuId = "account-menu";
+  const mobileMenuId = "account-menu-mobile";
 
+  const profileButton = (
+    <IconButton onClick={handleProfileMenuOpen}>
+      <Avatar
+        className={classes.small}
+        alt={DataUser[0]}
+        src={DataUser[1]}
+        aria-label="account of current user"
+        aria-controls={menuId}
+        aria-haspopup="true"
+      />
+    </IconButton>
+  );
   const profileMenu = (
     <Menu
       anchorEl={anchorEl}
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       id={menuId}
       keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
       open={isMenuOpen}
       onClose={handleProfileMenuClose}
+      transformOrigin={{ vertical: "top", horizontal: "right" }}
     >
+      <MenuItem disabled className={classes.normal}>
+        <Typography component="p" variant="body1">
+          Hello, {DataUser[0]}
+        </Typography>
+      </MenuItem>
+      <Divider />
       <MenuItem onClick={handleProfileMenuClose}>My account</MenuItem>
       <MenuItem onClick={singout}>Sing Out</MenuItem>
-    </Menu>
-  );
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem>
-        <Notification />
-        <p>Notifications</p>
-      </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
     </Menu>
   );
 
@@ -161,28 +162,24 @@ export default function NavBar(props) {
 
             <div className={classes.grow} />
             <div className={classes.sectionDesktopLogin}>
-              {props.login ? (
+              {login ? (
                 <>
                   <Notification />
-                  <IconButton
-                    edge="end"
-                    aria-label="account of current user"
-                    aria-controls={menuId}
-                    aria-haspopup="true"
-                    onClick={handleProfileMenuOpen}
-                    color="inherit"
-                  >
-                    <AccountCircle />
-                  </IconButton>
+                  {profileButton}
                 </>
               ) : (
                 <>
                   {routes.map((r) => {
                     if (!r.hidden) {
                       return (
-                        <Link to={r.path} key={r.name}>
+                        <NavLink
+                          exact
+                          activeClassName="active"
+                          to={r.path}
+                          key={r.name}
+                        >
                           <Button color="secondary">{r.name}</Button>
-                        </Link>
+                        </NavLink>
                       );
                     }
                     return "";
@@ -190,7 +187,7 @@ export default function NavBar(props) {
                 </>
               )}
             </div>
-            {props.login ? (
+            {login ? (
               <div className={classes.sectionMobile}>
                 <IconButton
                   aria-label="show more"
@@ -209,7 +206,24 @@ export default function NavBar(props) {
         </AppBar>
       </HideOnScroll>
       <Toolbar></Toolbar>
-      {renderMobileMenu}
+      <Menu
+        anchorEl={mobileMoreAnchorEl}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        id={mobileMenuId}
+        keepMounted
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        open={isMobileMenuOpen}
+        onClose={handleMobileMenuClose}
+      >
+        <MenuItem onClick={handleProfileMenuOpen}>
+          {profileButton}
+          <Typography component="p">{DataUser[0]}</Typography>
+        </MenuItem>
+        <MenuItem>
+          <Notification />
+          <Typography component="p">Notifications</Typography>
+        </MenuItem>
+      </Menu>
       {profileMenu}
     </div>
   );
