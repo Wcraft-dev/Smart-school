@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ValidationAux from "../../../helpers/validationAuth";
-import { getCookie } from "../../../helpers/clientSave";
+import { getCookie, getLocalStorage } from "../../../helpers/clientSave";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Horario from "../../../components/schedule";
@@ -97,7 +97,7 @@ export default function Asdhxhi(props) {
 
   const dataUser = (bool) => {
     if (bool) {
-      return localStorage.getItem("user");
+      return getLocalStorage("user");
     }
     return getCookie("token");
   };

@@ -6,14 +6,14 @@ import Lox from "../helpers/auth";
 
 export default function Notifications() {
   let notification = useContext(NotificationsContext);
-  const login  = useContext(LoginContext);
+  const login = useContext(LoginContext);
 
   const [open, setOpen] = useState(null);
   const [dataNotification, setDataNotification] = useState([]);
 
   useEffect(() => {
-    if(!login[0]) notification[1](null)
-  }, [login[0]])
+    if (!login[0]) notification[1](null);
+  }, [login, notification]);
 
   const handleDataNotification = (res) => {
     setDataNotification([

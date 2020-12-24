@@ -1,5 +1,5 @@
 import axions from "axios";
-import React, { useState } from "react";
+import React from "react";
 import { useContext } from "react";
 import { NotificationsContext } from "../App";
 
@@ -132,7 +132,7 @@ export const isAuth = async (pathRequest, state) => {
 //update user data in localstorage
 export const updateUser = (response, next) => {
   if (window !== "undefined") {
-    let auth = JSON.parse(localStorage.getItem("user"));
+    let auth = JSON.parse(getLocalStorage("user"));
     auth = response.data;
     localStorage.setItem("user", JSON.stringify(auth));
   }
