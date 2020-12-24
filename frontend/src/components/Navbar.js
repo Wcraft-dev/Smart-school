@@ -1,4 +1,4 @@
-import React, { useState,useContext } from "react";
+import React, { useState, useContext } from "react";
 import { useHistory, NavLink } from "react-router-dom";
 import {
   AppBar,
@@ -11,13 +11,20 @@ import {
   makeStyles,
   Menu,
   MenuItem,
-  Button,
+  Link,
   Avatar,
   Divider,
+  SwipeableDrawer,
+  List,
+  ListItemIcon,
+  ListItem,
+  ListItemText,
 } from "@material-ui/core/";
 import Notification from "./Notifications";
 import MenuIcon from "@material-ui/icons/Menu";
 import MoreIcon from "@material-ui/icons/MoreVert";
+import InboxIcon from "@material-ui/icons/MoveToInbox";
+import MailIcon from "@material-ui/icons/Mail";
 import routes from "../routes/";
 import { getLocalStorage } from "../helpers/clientSave";
 import { LoginContext } from "../App";
@@ -57,47 +64,97 @@ const useStyles = makeStyles((theme) => ({
       display: "flex",
     },
   },
+  MainMenu: {
+    width: 250,
+  },
   sectionMobile: {
     display: "flex",
     [theme.breakpoints.up("md")]: {
       display: "none",
     },
   },
+  toolbarFake: {
+    background: theme.palette.primary.main,
+  },
+  rootLink: {
+    fontSize: "1rem",
+    padding: "10px 10px",
+    marginLeft: "20px",
+    textAlign: "center",
+    display: "inline-block",
+    textDecoration: "none",
+    borderBottom: `0px solid ${theme.palette.primary.light}`,
+    transition: "0.5s cubic-bezier(.68,-0.55,.27,1.55) 0.2s",
+    "&$underlineHover:hover": {
+      fontWeight: "bold",
+      textDecoration: "none",
+      padding: "10px 20px",
+      borderBottom: `2px solid ${theme.palette.primary.light}`,
+      color: theme.palette.primary.light,
+    },
+  },
+  underlineHover: {},
+  selected: {
+    textDecoration: "none",
+    padding: "10px 20px",
+    borderBottom: `2px solid ${theme.palette.primary.light}`,
+    color: theme.palette.primary.light,
+    fontWeight: "bold",
+  },
+  drawer: {
+    top: "64px !important",
+  },
 }));
 
 export default function NavBar(props) {
-  const [login, setLogin] = useContext(LoginContext);
+  const login = useContext(LoginContext);
 
   const classes = useStyles();
   let history = useHistory();
+
   const getDataUser = () => {
-    const Get = getLocalStorage("user");
-    if (Get !== null) {
-      const r = JSON.parse(Get);
-      return r;
+    if (getLocalStorage("user") !== null) {
+      return JSON.parse(getLocalStorage("user"));
     } else {
       return { name: "", picture: "" };
     }
   };
   const DataUser = [getDataUser().name, getDataUser().picture];
+
   const [anchorEl, setAnchorEl] = useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+
+  const [mobileProfileAnchorEl, setMobileProfileAnchorEl] = useState(null);
+  const isMobileProfileOpen = Boolean(mobileProfileAnchorEl);
+
+  const [MainMenu, setMainMenu] = useState(false);
+
+  const toggleDrawer = () => (event) => {
+    if (
+      event &&
+      event.type === "keydown" &&
+      (event.key === "Tab" || event.key === "Shift")
+    ) {
+      return;
+    }
+    setMainMenu(!MainMenu);
+  };
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleMobileMenuClose = () => {
-    setMobileMoreAnchorEl(null);
-  };
   const handleProfileMenuClose = () => {
     setAnchorEl(null);
-    handleMobileMenuClose();
+    handleMobileProfileClose();
   };
-  const handleMobileMenuOpen = (event) => {
-    setMobileMoreAnchorEl(event.currentTarget);
+
+  const handleMobileProfileClose = () => {
+    setMobileProfileAnchorEl(null);
   };
+  const handleMobileProfileOpen = (event) => {
+    setMobileProfileAnchorEl(event.currentTarget);
+  };
+
   const singout = () => {
     handleProfileMenuClose();
     history.push("/user/singout");
@@ -139,30 +196,82 @@ export default function NavBar(props) {
     </Menu>
   );
 
+  const MainMenuF = (
+    <div>
+      <SwipeableDrawer
+        anchor="left"
+        open={MainMenu}
+        onOpen={toggleDrawer}
+        onClose={toggleDrawer()}
+        className={classes.drawer}
+        ModalProps={{
+          BackdropProps: {
+            classes: {
+              root: classes.drawer,
+            },
+          },
+        }}
+        PaperProps={{
+          classes: {
+            root: classes.drawer,
+          },
+        }}
+      >
+        <div className={classes.MainMenu} role="presentation">
+          <List>
+            <ListItem button>
+              <ListItemIcon>
+                <InboxIcon />
+              </ListItemIcon>
+              <ListItemText primary={"qu tal"} />
+            </ListItem>
+
+            <ListItem button>
+              <ListItemIcon>
+                <MailIcon />
+              </ListItemIcon>
+            </ListItem>
+          </List>
+          <Divider />
+          <List>
+            <ListItem button>
+              <ListItemIcon>
+                <InboxIcon />
+              </ListItemIcon>
+              <ListItemText primary={"hola"} />
+            </ListItem>
+          </List>
+        </div>
+      </SwipeableDrawer>
+    </div>
+  );
   return (
     <div className={classes.grow}>
       <CssBaseline />
       <HideOnScroll {...props}>
         <AppBar>
           <Toolbar>
-            <div className={classes.sectionMobile}>
+            {login[0] ? (
               <IconButton
                 edge="start"
                 className={classes.menuButton}
                 color="inherit"
+                onClick={toggleDrawer(true)}
                 aria-label="open drawer"
               >
                 <MenuIcon />
               </IconButton>
-            </div>
-
+            ) : (
+              ""
+            )}
             <Typography className={classes.title} variant="h6" noWrap>
               Smart School
             </Typography>
 
             <div className={classes.grow} />
+
             <div className={classes.sectionDesktopLogin}>
-              {login ? (
+              {login[0] ? (
                 <>
                   <Notification />
                   {profileButton}
@@ -172,14 +281,20 @@ export default function NavBar(props) {
                   {routes.map((r) => {
                     if (!r.hidden) {
                       return (
-                        <NavLink
-                          exact
-                          activeClassName="active"
+                        <Link
+                          component={NavLink}
                           to={r.path}
+                          color="secondary"
+                          classes={{
+                            root: classes.rootLink,
+                            underlineHover: classes.underlineHover,
+                          }}
+                          activeClassName={classes.selected}
+                          exact
                           key={r.name}
                         >
-                          <Button color="secondary">{r.name}</Button>
-                        </NavLink>
+                          {r.name}
+                        </Link>
                       );
                     }
                     return "";
@@ -187,13 +302,13 @@ export default function NavBar(props) {
                 </>
               )}
             </div>
-            {login ? (
+            {login[0] ? (
               <div className={classes.sectionMobile}>
                 <IconButton
                   aria-label="show more"
                   aria-controls={mobileMenuId}
                   aria-haspopup="true"
-                  onClick={handleMobileMenuOpen}
+                  onClick={handleMobileProfileOpen}
                   color="inherit"
                 >
                   <MoreIcon />
@@ -205,15 +320,15 @@ export default function NavBar(props) {
           </Toolbar>
         </AppBar>
       </HideOnScroll>
-      <Toolbar></Toolbar>
+      <Toolbar className={classes.toolbarFake} />
       <Menu
-        anchorEl={mobileMoreAnchorEl}
+        anchorEl={mobileProfileAnchorEl}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
         id={mobileMenuId}
         keepMounted
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        open={isMobileMenuOpen}
-        onClose={handleMobileMenuClose}
+        open={isMobileProfileOpen}
+        onClose={handleMobileProfileClose}
       >
         <MenuItem onClick={handleProfileMenuOpen}>
           {profileButton}
@@ -225,6 +340,7 @@ export default function NavBar(props) {
         </MenuItem>
       </Menu>
       {profileMenu}
+      {login[0] ? <>{MainMenuF}</> : ""}
     </div>
   );
 }
